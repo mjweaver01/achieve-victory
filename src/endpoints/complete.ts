@@ -45,6 +45,9 @@ export async function redeemSession(
     .executeTakeFirst();
 
   if (existingCode) {
+    console.log(
+      `[reward] code already exists for ${email} (session=${sessionId}, code=${existingCode.code})`
+    );
     return json({ success: true } satisfies CompleteResponse);
   }
 
@@ -76,6 +79,10 @@ export async function redeemSession(
       })
       .execute();
 
+    console.log(
+      `[reward] code created for ${email} (session=${sessionId}, code=${code}, timeMs=${completionTimeMs})`
+    );
+
     return json({ success: true } satisfies CompleteResponse);
   } catch (err) {
     await db
@@ -90,6 +97,9 @@ export async function redeemSession(
 
     const msg =
       err instanceof Error ? err.message : 'Could not send reward email';
+    console.error(
+      `[reward] failed for ${email} (session=${sessionId}): ${msg}`
+    );
     return error(msg, 502);
   }
 }
