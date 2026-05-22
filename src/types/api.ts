@@ -11,6 +11,13 @@ export type CompleteRequest = {
 
 export type CompleteResponse = { success: true };
 
+export type ResendCodeRequest = {
+  sessionId: string;
+  email: string;
+};
+
+export type ResendCodeResponse = { success: true; mock?: boolean };
+
 export type LeaderboardEntry = {
   rank: number;
   email: string;

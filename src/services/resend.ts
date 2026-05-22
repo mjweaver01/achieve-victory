@@ -1,5 +1,17 @@
 import { Resend } from 'resend';
 
+/** User-facing message for Resend API failures. */
+export function mapResendError(message: string): string {
+  if (/domain is not verified/i.test(message)) {
+    return (
+      'Email could not be sent: the sender domain is not verified in Resend. ' +
+      'Use RESEND_FROM_EMAIL on a domain you added at resend.com/domains (not @gmail.com). ' +
+      'For quick testing: Madeon <onboarding@resend.dev> — only delivers to your Resend account email.'
+    );
+  }
+  return message;
+}
+
 export async function sendDiscountEmail(
   email: string,
   code: string
@@ -28,7 +40,7 @@ export async function sendDiscountEmail(
   });
 
   if (error) {
-    throw new Error(error.message);
+    throw new Error(mapResendError(error.message));
   }
 }
 

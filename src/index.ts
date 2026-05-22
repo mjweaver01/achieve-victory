@@ -4,6 +4,7 @@ import indexPageHtml from './frontend/index.html';
 import { postStart } from './endpoints/start';
 import { postComplete } from './endpoints/complete';
 import { postDevComplete } from './endpoints/devComplete';
+import { postResend } from './endpoints/resend';
 import { getLeaderboard } from './endpoints/leaderboard';
 import { getAdmin } from './endpoints/admin';
 import { initDb } from './db/index';
@@ -86,6 +87,9 @@ const server = Bun.serve({
     },
     '/api/complete': {
       POST: isProduction ? withRateLimit(postComplete) : postComplete,
+    },
+    '/api/resend': {
+      POST: isProduction ? withRateLimit(postResend) : postResend,
     },
     '/api/dev/complete': { POST: postDevComplete },
     '/api/leaderboard': { GET: getLeaderboard },

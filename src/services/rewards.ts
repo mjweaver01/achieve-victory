@@ -19,6 +19,19 @@ export function isRewardSystemConfigured(): boolean {
   return isShopifyConfigured() && isResendConfigured();
 }
 
+export async function resendRewardEmail(
+  email: string,
+  code: string
+): Promise<{ mock: boolean }> {
+  if (useMockRewards()) {
+    console.log(`[dev] Resend code for ${email}: ${code}`);
+    return { mock: true };
+  }
+
+  await sendDiscountEmail(email, code);
+  return { mock: false };
+}
+
 export async function fulfillReward(
   email: string
 ): Promise<{ code: string; shopifyCustomerId: string }> {

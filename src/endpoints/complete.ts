@@ -63,19 +63,35 @@ export async function redeemSession(
     .where('id', '=', sessionId)
     .execute();
 
-  const { code, shopifyCustomerId } = await fulfillReward(email);
+  try {
+    const { code, shopifyCustomerId } = await fulfillReward(email);
 
-  await db
-    .insertInto('codes')
-    .values({
-      email,
-      code,
-      shopify_customer_id: shopifyCustomerId,
-      created_at: now,
-    })
-    .execute();
+    await db
+      .insertInto('codes')
+      .values({
+        email,
+        code,
+        shopify_customer_id: shopifyCustomerId,
+        created_at: now,
+      })
+      .execute();
 
-  return json({ success: true } satisfies CompleteResponse);
+    return json({ success: true } satisfies CompleteResponse);
+  } catch (err) {
+    await db
+      .updateTable('sessions')
+      .set({
+        redeemed_at: null,
+        completion_time_ms: null,
+        score: null,
+      })
+      .where('id', '=', sessionId)
+      .execute();
+
+    const msg =
+      err instanceof Error ? err.message : 'Could not send reward email';
+    return error(msg, 502);
+  }
 }
 
 export async function postComplete(req: Request): Promise<Response> {

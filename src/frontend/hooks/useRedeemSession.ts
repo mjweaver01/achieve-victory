@@ -26,6 +26,8 @@ export function useRedeemSession() {
   const [message, setMessage] = useState(
     () => initialRedeem(sessionId).message
   );
+  const [resendBusy, setResendBusy] = useState(false);
+  const [resendNotice, setResendNotice] = useState('');
 
   useEffect(() => {
     if (!sessionId) return;
@@ -74,7 +76,50 @@ export function useRedeemSession() {
   const resetRedeem = useCallback(() => {
     setStatus('playing');
     setMessage('');
+    setResendNotice('');
   }, []);
 
-  return { status, message, redeem, resetRedeem };
+  const resendCode = useCallback(async () => {
+    const current = getStoredSession();
+    if (!current || status !== 'done') return;
+
+    setResendBusy(true);
+    setResendNotice('');
+    try {
+      const res = await fetch('/api/resend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: current.sessionId,
+          email: current.email,
+        }),
+      });
+      const data = (await res.json()) as { error?: string; mock?: boolean };
+
+      if (!res.ok) {
+        setResendNotice(data.error ?? 'Could not resend email');
+        return;
+      }
+
+      setResendNotice(
+        data.mock
+          ? 'Development mode — email not sent. Your code was logged in the server terminal.'
+          : 'Email sent again. Check your inbox.'
+      );
+    } catch {
+      setResendNotice('Network error — try again.');
+    } finally {
+      setResendBusy(false);
+    }
+  }, [status]);
+
+  return {
+    status,
+    message,
+    redeem,
+    resetRedeem,
+    resendCode,
+    resendBusy,
+    resendNotice,
+  };
 }

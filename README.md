@@ -33,6 +33,7 @@ Put images and fonts in `public/` (see `public/README.md`). They are served at t
 |-------|--------|-------------|
 | `/api/start` | POST | `{ email }` → `{ sessionId }` |
 | `/api/complete` | POST | `{ sessionId, email, completionTimeMs }` |
+| `/api/resend` | POST | `{ sessionId, email }` — resend discount email after win |
 | `/api/leaderboard` | GET | Public anonymized leaderboard |
 | `/api/admin` | GET | `?key=` or `x-admin-secret` header |
 | `/api/dev/complete` | POST | Non-production only. Same body as `/api/complete`; `?key=` or `x-admin-secret` |

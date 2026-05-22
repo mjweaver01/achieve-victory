@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { ChessMatch } from '../components/ChessMatch';
 import { Layout } from '../components/Layout';
 import { PuzzleComplete } from '../components/PuzzleComplete';
+import { ResendCodeButton } from '../components/ResendCodeButton';
 import { StartOverButton } from '../components/StartOverButton';
 import { useRedeemSession } from '../hooks/useRedeemSession';
 import {
@@ -16,7 +17,15 @@ import { getStoredSession } from '../utils/session';
 export function ChessPage() {
   const navigate = useNavigate();
   const session = getStoredSession();
-  const { status, message, redeem, resetRedeem } = useRedeemSession();
+  const {
+    status,
+    message,
+    redeem,
+    resetRedeem,
+    resendCode,
+    resendBusy,
+    resendNotice,
+  } = useRedeemSession();
   const [gameKey, setGameKey] = useState(0);
 
   const savedChess = useMemo(() => {
@@ -70,7 +79,18 @@ export function ChessPage() {
           <PuzzleComplete
             status={status}
             message={message}
-            footer={<StartOverButton onClick={handleStartOver} />}
+            footer={
+              <>
+                {status === 'done' ? (
+                  <ResendCodeButton
+                    onClick={() => void resendCode()}
+                    disabled={resendBusy}
+                    notice={resendNotice}
+                  />
+                ) : null}
+                <StartOverButton onClick={handleStartOver} />
+              </>
+            }
           />
         )}
       </div>

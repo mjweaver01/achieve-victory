@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { Layout } from '../components/Layout';
 import { PuzzleComplete } from '../components/PuzzleComplete';
 import { SlidingPuzzle } from '../components/SlidingPuzzle';
+import { ResendCodeButton } from '../components/ResendCodeButton';
 import { StartOverButton } from '../components/StartOverButton';
 import { useRedeemSession } from '../hooks/useRedeemSession';
 import {
@@ -16,7 +17,15 @@ import { getStoredSession } from '../utils/session';
 export function PuzzlePage() {
   const navigate = useNavigate();
   const session = getStoredSession();
-  const { status, message, redeem, resetRedeem } = useRedeemSession();
+  const {
+    status,
+    message,
+    redeem,
+    resetRedeem,
+    resendCode,
+    resendBusy,
+    resendNotice,
+  } = useRedeemSession();
   const [gameKey, setGameKey] = useState(0);
 
   const savedPuzzle = useMemo(() => {
@@ -78,7 +87,18 @@ export function PuzzlePage() {
                 ? savedPuzzle.completionTimeMs / 1000
                 : undefined
             }
-            footer={<StartOverButton onClick={handleStartOver} />}
+            footer={
+              <>
+                {status === 'done' ? (
+                  <ResendCodeButton
+                    onClick={() => void resendCode()}
+                    disabled={resendBusy}
+                    notice={resendNotice}
+                  />
+                ) : null}
+                <StartOverButton onClick={handleStartOver} />
+              </>
+            }
           />
         )}
       </div>

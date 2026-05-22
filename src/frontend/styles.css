@@ -203,6 +203,13 @@ button.secondary:hover {
   margin-top: 1rem;
 }
 
+.resend-code-notice {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
 .nav {
   display: flex;
   justify-content: center;
