@@ -13,8 +13,28 @@ let db: Kysely<DB> | null = null;
 let sqlite: Database | null = null;
 let pool: pg.Pool | null = null;
 
+function getPostgresUrl(): string | null {
+  const direct = process.env.DATABASE_URL?.trim();
+  if (direct) return direct;
+
+  // Backward-compatible fallback for misconfigured environments.
+  const maybeUrl = process.env.DATABASE_PATH?.trim();
+  if (
+    maybeUrl &&
+    (maybeUrl.startsWith('postgres://') ||
+      maybeUrl.startsWith('postgresql://'))
+  ) {
+    console.warn(
+      '[DB] DATABASE_PATH contains a Postgres URL; using it as DATABASE_URL. Set DATABASE_URL in Railway.'
+    );
+    return maybeUrl;
+  }
+
+  return null;
+}
+
 export function isPostgres(): boolean {
-  return Boolean(process.env.DATABASE_URL);
+  return Boolean(getPostgresUrl());
 }
 
 export function getDbPath(): string {
@@ -24,8 +44,9 @@ export function getDbPath(): string {
 export function getDb(): Kysely<DB> {
   if (db) return db;
 
-  if (process.env.DATABASE_URL) {
-    pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const postgresUrl = getPostgresUrl();
+  if (postgresUrl) {
+    pool = new Pool({ connectionString: postgresUrl });
     db = new Kysely<DB>({
       dialect: new PostgresDialect({ pool }),
     });

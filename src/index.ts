@@ -72,8 +72,8 @@ function servePublicFile(pathname: string): Response | undefined {
 
 const server = Bun.serve({
   port: process.env.PORT ?? 3847,
-  hostname:
-    process.env.HOSTNAME ?? (isProduction ? '0.0.0.0' : 'localhost'),
+  // Railway expects services to listen on all interfaces.
+  hostname: isProduction ? '0.0.0.0' : 'localhost',
   routes: {
     '/': indexPageHtml,
     '/play': indexPageHtml,
