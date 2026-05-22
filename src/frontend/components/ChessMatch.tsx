@@ -5,8 +5,7 @@ import type { ChessProgress } from '../utils/gameProgress';
 
 type Outcome = ChessProgress['outcome'];
 
-const DEFAULT_STATUS =
-  'You play white. Checkmate the computer to win your code.';
+const DEFAULT_STATUS = '';
 
 type Props = {
   saved?: ChessProgress;
@@ -111,7 +110,7 @@ export function ChessMatch({ saved, onWin, onProgressChange }: Props) {
         return true;
       }
       if (playerLost(game)) {
-        const text = 'Checkmate — the computer wins. Try again.';
+        const text = 'Checkmate! The computer wins. Try again.';
         setOutcome('lost');
         setStatusText(text);
         persist({ fen: nextFen, outcome: 'lost', statusText: text });
@@ -134,7 +133,7 @@ export function ChessMatch({ saved, onWin, onProgressChange }: Props) {
         return true;
       }
       if (playerLost(game)) {
-        const text = 'Checkmate — the computer wins. Try again.';
+        const text = 'Checkmate! The computer wins. Try again.';
         setOutcome('lost');
         setStatusText(text);
         persist({ fen: afterBotFen, outcome: 'lost', statusText: text });
@@ -177,7 +176,7 @@ export function ChessMatch({ saved, onWin, onProgressChange }: Props) {
 
   return (
     <div className="chess-wrap">
-      <p className="timer">{statusText}</p>
+      {statusText && <p className="timer">{statusText}</p>}
       <Chessboard options={boardOptions} />
     </div>
   );
