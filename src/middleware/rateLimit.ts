@@ -1,9 +1,10 @@
-const WINDOW_MS = 60 * 60 * 1000;
-const MAX_REQUESTS = 3;
-
 type Bucket = { count: number; resetAt: number };
 
 const buckets = new Map<string, Bucket>();
+
+function isProduction(): boolean {
+  return process.env.NODE_ENV === 'production';
+}
 
 function clientIp(req: Request): string {
   return (
@@ -14,18 +15,23 @@ function clientIp(req: Request): string {
 }
 
 export function rateLimitApi(req: Request): Response | null {
+  if (!isProduction()) return null;
+
   const ip = clientIp(req);
   const now = Date.now();
+  const windowMs = 60 * 60 * 1000;
+  const maxRequests = 3;
+
   let bucket = buckets.get(ip);
 
   if (!bucket || now >= bucket.resetAt) {
-    bucket = { count: 0, resetAt: now + WINDOW_MS };
+    bucket = { count: 0, resetAt: now + windowMs };
     buckets.set(ip, bucket);
   }
 
   bucket.count += 1;
 
-  if (bucket.count > MAX_REQUESTS) {
+  if (bucket.count > maxRequests) {
     return new Response(
       JSON.stringify({ error: 'Too many requests. Try again later.' }),
       {

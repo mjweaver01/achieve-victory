@@ -65,10 +65,10 @@ export function AdminPage() {
             <div className="chart">
               <ResponsiveContainer>
                 <BarChart data={stats.codesByDay}>
-                  <XAxis dataKey="date" tick={{ fill: '#9b92b8', fontSize: 11 }} />
-                  <YAxis tick={{ fill: '#9b92b8', fontSize: 11 }} />
+                  <XAxis dataKey="date" tick={{ fill: '#a3a3a3', fontSize: 11 }} />
+                  <YAxis tick={{ fill: '#a3a3a3', fontSize: 11 }} />
                   <Tooltip />
-                  <Bar dataKey="count" fill="#7c5cff" />
+                  <Bar dataKey="count" fill="#e11d48" />
                 </BarChart>
               </ResponsiveContainer>
             </div>

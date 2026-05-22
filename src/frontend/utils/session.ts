@@ -6,6 +6,8 @@ export type StoredSession = {
   game: GameType;
 };
 
+import { clearProgress } from './gameProgress';
+
 const SESSION_KEY = 'madeon_session';
 
 export function getStoredSession(): StoredSession | null {
@@ -28,6 +30,10 @@ export function storeSession(
   email: string,
   game: GameType
 ): void {
+  const existing = getStoredSession();
+  if (existing?.sessionId !== sessionId) {
+    clearProgress();
+  }
   sessionStorage.setItem(
     SESSION_KEY,
     JSON.stringify({ sessionId, email, game })

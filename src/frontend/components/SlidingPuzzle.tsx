@@ -1,49 +1,52 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-
-const SIZE = 4;
-
-function createSolved(): number[] {
-  return Array.from({ length: SIZE * SIZE }, (_, i) => i);
-}
-
-function shuffle(board: number[]): number[] {
-  const next = [...board];
-  for (let i = 0; i < 200; i++) {
-    const empty = next.indexOf(SIZE * SIZE - 1);
-    const neighbors = getNeighbors(empty);
-    const pick = neighbors[Math.floor(Math.random() * neighbors.length)];
-    if (pick == null) continue;
-    [next[empty], next[pick]] = [next[pick]!, next[empty]!];
-  }
-  return next;
-}
-
-function getNeighbors(emptyIndex: number): number[] {
-  const row = Math.floor(emptyIndex / SIZE);
-  const col = emptyIndex % SIZE;
-  const neighbors: number[] = [];
-  if (row > 0) neighbors.push(emptyIndex - SIZE);
-  if (row < SIZE - 1) neighbors.push(emptyIndex + SIZE);
-  if (col > 0) neighbors.push(emptyIndex - 1);
-  if (col < SIZE - 1) neighbors.push(emptyIndex + 1);
-  return neighbors;
-}
-
-function isSolved(board: number[]): boolean {
-  return board.every((v, i) => v === i);
-}
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { PuzzleProgress } from '../utils/gameProgress';
+import {
+  createFreshPuzzleBoard,
+  getPuzzleNeighbors,
+  isPuzzleSolved,
+  normalizePuzzleBoard,
+  PUZZLE_SIZE,
+  tileLabel,
+} from '../utils/puzzleBoard';
 
 type Props = {
+  saved?: PuzzleProgress;
+  shouldResumeComplete?: boolean;
   onComplete: (elapsedMs: number) => void;
+  onProgressChange: (progress: PuzzleProgress) => void;
 };
 
-export function SlidingPuzzle({ onComplete }: Props) {
-  const [board, setBoard] = useState(() => shuffle(createSolved()));
-  const [startedAt, setStartedAt] = useState<number | null>(null);
-  const [elapsedMs, setElapsedMs] = useState(0);
-  const [done, setDone] = useState(false);
+function elapsedNow(startedAt: number | null, frozenMs: number, done: boolean) {
+  if (done) return frozenMs;
+  if (!startedAt) return 0;
+  return Date.now() - startedAt;
+}
 
-  const emptyIndex = useMemo(() => board.indexOf(SIZE * SIZE - 1), [board]);
+export function SlidingPuzzle({
+  saved,
+  shouldResumeComplete = false,
+  onComplete,
+  onProgressChange,
+}: Props) {
+  const completedRef = useRef(false);
+
+  const [board, setBoard] = useState(() =>
+    saved?.board ? normalizePuzzleBoard(saved.board) : createFreshPuzzleBoard()
+  );
+  const [startedAt, setStartedAt] = useState<number | null>(
+    saved?.startedAt ?? null
+  );
+  const [elapsedMs, setElapsedMs] = useState(
+    () => (Number.isFinite(saved?.elapsedMs) ? saved!.elapsedMs : 0)
+  );
+  const [done, setDone] = useState(saved?.done ?? false);
+  const [completionTimeMs, setCompletionTimeMs] = useState<
+    number | undefined
+  >(
+    saved?.completionTimeMs != null && Number.isFinite(saved.completionTimeMs)
+      ? saved.completionTimeMs
+      : undefined
+  );
 
   useEffect(() => {
     if (!startedAt || done) return;
@@ -53,41 +56,84 @@ export function SlidingPuzzle({ onComplete }: Props) {
     return () => clearInterval(id);
   }, [startedAt, done]);
 
+  useEffect(() => {
+    onProgressChange({
+      board,
+      startedAt,
+      elapsedMs,
+      done,
+      completionTimeMs: done ? completionTimeMs : undefined,
+    });
+  }, [board, startedAt, elapsedMs, done, completionTimeMs, onProgressChange]);
+
+  useEffect(() => {
+    if (completedRef.current || !shouldResumeComplete) return;
+    const ms = saved?.completionTimeMs;
+    if (!saved?.done || ms == null || !Number.isFinite(ms)) return;
+    completedRef.current = true;
+    setDone(true);
+    setElapsedMs(ms);
+    onComplete(ms);
+  }, [
+    shouldResumeComplete,
+    saved?.done,
+    saved?.completionTimeMs,
+    onComplete,
+  ]);
+
   const move = useCallback(
     (index: number) => {
       if (done) return;
-      const neighbors = getNeighbors(emptyIndex);
-      if (!neighbors.includes(index)) return;
 
-      if (!startedAt) setStartedAt(Date.now());
+      const start = startedAt ?? Date.now();
+      if (!startedAt) setStartedAt(start);
 
       setBoard(prev => {
-        const next = [...prev];
-        [next[emptyIndex], next[index]] = [next[index]!, next[emptyIndex]!];
-        if (isSolved(next)) {
+        const normalized = normalizePuzzleBoard(prev);
+        const empty = normalized.indexOf(PUZZLE_SIZE * PUZZLE_SIZE - 1);
+        if (empty === -1) return createFreshPuzzleBoard();
+
+        const neighbors = getPuzzleNeighbors(empty);
+        if (!neighbors.includes(index)) return normalized;
+
+        const next = [...normalized];
+        [next[empty], next[index]] = [next[index]!, next[empty]!];
+
+        if (isPuzzleSolved(next)) {
+          const ms = Math.max(1, Date.now() - start);
           setDone(true);
-          const start = startedAt ?? Date.now();
-          onComplete(Date.now() - start);
+          setElapsedMs(ms);
+          setCompletionTimeMs(ms);
+          onProgressChange({
+            board: next,
+            startedAt: start,
+            elapsedMs: ms,
+            done: true,
+            completionTimeMs: ms,
+          });
+          onComplete(ms);
         }
+
         return next;
       });
     },
-    [done, emptyIndex, onComplete, startedAt]
+    [done, onComplete, onProgressChange, startedAt]
   );
+
+  const timerSec = elapsedNow(startedAt, elapsedMs, done) / 1000;
 
   return (
     <div>
       <p className="timer">
-        {done
-          ? 'Complete!'
-          : `Time: ${(elapsedMs / 1000).toFixed(1)}s`}
+        {done ? 'Complete!' : `Time: ${Number.isFinite(timerSec) ? timerSec.toFixed(1) : '0.0'}s`}
       </p>
       <div
         className="puzzle-grid"
-        style={{ gridTemplateColumns: `repeat(${SIZE}, 1fr)` }}
+        style={{ gridTemplateColumns: `repeat(${PUZZLE_SIZE}, 1fr)` }}
       >
         {board.map((value, index) => {
-          const isEmpty = value === SIZE * SIZE - 1;
+          const label = tileLabel(value);
+          const isEmpty = label === '';
           return (
             <button
               key={`${index}-${value}`}
@@ -95,9 +141,9 @@ export function SlidingPuzzle({ onComplete }: Props) {
               className={`puzzle-tile${isEmpty ? ' empty' : ''}`}
               onClick={() => move(index)}
               disabled={isEmpty || done}
-              aria-label={isEmpty ? 'empty' : `tile ${value + 1}`}
+              aria-label={isEmpty ? 'empty' : `tile ${label}`}
             >
-              {isEmpty ? '' : value + 1}
+              {label}
             </button>
           );
         })}

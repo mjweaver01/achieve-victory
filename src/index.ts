@@ -37,8 +37,12 @@ const server = Bun.serve({
     '/leaderboard': indexPageHtml,
     '/admin': indexPageHtml,
 
-    '/api/start': { POST: withRateLimit(postStart) },
-    '/api/complete': { POST: withRateLimit(postComplete) },
+    '/api/start': {
+      POST: isProduction ? withRateLimit(postStart) : postStart,
+    },
+    '/api/complete': {
+      POST: isProduction ? withRateLimit(postComplete) : postComplete,
+    },
     '/api/dev/complete': { POST: postDevComplete },
     '/api/leaderboard': { GET: getLeaderboard },
     '/api/admin': { GET: getAdmin },

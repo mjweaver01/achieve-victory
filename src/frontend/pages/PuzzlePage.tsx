@@ -1,16 +1,29 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Layout } from '../components/Layout';
 import { SlidingPuzzle } from '../components/SlidingPuzzle';
+import { StartOverButton } from '../components/StartOverButton';
 import { useRedeemSession } from '../hooks/useRedeemSession';
+import {
+  clearGameState,
+  loadProgress,
+  savePuzzleProgress,
+  type PuzzleProgress,
+} from '../utils/gameProgress';
 import { getStoredSession } from '../utils/session';
 
 export function PuzzlePage() {
   const navigate = useNavigate();
-  const { status, message, redeem } = useRedeemSession();
+  const session = getStoredSession();
+  const { status, message, redeem, resetRedeem } = useRedeemSession();
+  const [gameKey, setGameKey] = useState(0);
+
+  const savedPuzzle = useMemo(() => {
+    if (!session || gameKey > 0) return undefined;
+    return loadProgress(session.sessionId)?.puzzle;
+  }, [session, gameKey]);
 
   useEffect(() => {
-    const session = getStoredSession();
     if (!session) {
       navigate('/');
       return;
@@ -18,7 +31,23 @@ export function PuzzlePage() {
     if (session.game !== 'puzzle') {
       navigate(`/play/${session.game}`);
     }
-  }, [navigate]);
+  }, [navigate, session]);
+
+  const handleProgress = useCallback(
+    (progress: PuzzleProgress) => {
+      if (session) savePuzzleProgress(session.sessionId, progress);
+    },
+    [session]
+  );
+
+  const handleStartOver = useCallback(() => {
+    if (!session) return;
+    clearGameState(session.sessionId, 'puzzle');
+    resetRedeem();
+    setGameKey(k => k + 1);
+  }, [session, resetRedeem]);
+
+  if (!session) return null;
 
   return (
     <Layout
@@ -27,11 +56,25 @@ export function PuzzlePage() {
     >
       <div className="card">
         {status === 'playing' ? (
-          <SlidingPuzzle onComplete={ms => void redeem(ms)} />
+          <>
+            <SlidingPuzzle
+              key={gameKey}
+              saved={savedPuzzle}
+              shouldResumeComplete={
+                status === 'playing' && Boolean(savedPuzzle?.done)
+              }
+              onComplete={ms => void redeem(ms)}
+              onProgressChange={handleProgress}
+            />
+            <StartOverButton onClick={handleStartOver} />
+          </>
         ) : null}
         {status === 'submitting' ? <p>Sending your code…</p> : null}
         {status === 'done' || status === 'error' ? (
-          <p className={status === 'error' ? 'error' : undefined}>{message}</p>
+          <>
+            <p className={status === 'error' ? 'error' : undefined}>{message}</p>
+            <StartOverButton onClick={handleStartOver} />
+          </>
         ) : null}
       </div>
     </Layout>

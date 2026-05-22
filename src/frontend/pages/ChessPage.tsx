@@ -1,16 +1,29 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { ChessMatch } from '../components/ChessMatch';
 import { Layout } from '../components/Layout';
+import { StartOverButton } from '../components/StartOverButton';
 import { useRedeemSession } from '../hooks/useRedeemSession';
+import {
+  clearGameState,
+  loadProgress,
+  saveChessProgress,
+  type ChessProgress,
+} from '../utils/gameProgress';
 import { getStoredSession } from '../utils/session';
 
 export function ChessPage() {
   const navigate = useNavigate();
-  const { status, message, redeem } = useRedeemSession();
+  const session = getStoredSession();
+  const { status, message, redeem, resetRedeem } = useRedeemSession();
+  const [gameKey, setGameKey] = useState(0);
+
+  const savedChess = useMemo(() => {
+    if (!session || gameKey > 0) return undefined;
+    return loadProgress(session.sessionId)?.chess;
+  }, [session, gameKey]);
 
   useEffect(() => {
-    const session = getStoredSession();
     if (!session) {
       navigate('/');
       return;
@@ -18,7 +31,23 @@ export function ChessPage() {
     if (session.game !== 'chess') {
       navigate(`/play/${session.game}`);
     }
-  }, [navigate]);
+  }, [navigate, session]);
+
+  const handleProgress = useCallback(
+    (progress: ChessProgress) => {
+      if (session) saveChessProgress(session.sessionId, progress);
+    },
+    [session]
+  );
+
+  const handleStartOver = useCallback(() => {
+    if (!session) return;
+    clearGameState(session.sessionId, 'chess');
+    resetRedeem();
+    setGameKey(k => k + 1);
+  }, [session, resetRedeem]);
+
+  if (!session) return null;
 
   return (
     <Layout
@@ -27,11 +56,22 @@ export function ChessPage() {
     >
       <div className="card">
         {status === 'playing' ? (
-          <ChessMatch onWin={ms => void redeem(ms, 1)} />
+          <>
+            <ChessMatch
+              key={gameKey}
+              saved={savedChess}
+              onWin={ms => void redeem(ms, 1)}
+              onProgressChange={handleProgress}
+            />
+            <StartOverButton onClick={handleStartOver} />
+          </>
         ) : null}
         {status === 'submitting' ? <p>Sending your code…</p> : null}
         {status === 'done' || status === 'error' ? (
-          <p className={status === 'error' ? 'error' : undefined}>{message}</p>
+          <>
+            <p className={status === 'error' ? 'error' : undefined}>{message}</p>
+            <StartOverButton onClick={handleStartOver} />
+          </>
         ) : null}
       </div>
     </Layout>

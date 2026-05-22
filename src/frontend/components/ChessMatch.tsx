@@ -1,11 +1,17 @@
 import { Chess } from 'chess.js';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Chessboard } from 'react-chessboard';
+import type { ChessProgress } from '../utils/gameProgress';
 
-type Outcome = 'playing' | 'won' | 'lost' | 'draw';
+type Outcome = ChessProgress['outcome'];
+
+const DEFAULT_STATUS =
+  'You play white. Checkmate the computer to win your code.';
 
 type Props = {
+  saved?: ChessProgress;
   onWin: (elapsedMs: number) => void;
+  onProgressChange: (progress: ChessProgress) => void;
 };
 
 function playerWon(game: Chess): boolean {
@@ -23,29 +29,47 @@ function pickBotMove(game: Chess): void {
   if (move) game.move(move);
 }
 
-export function ChessMatch({ onWin }: Props) {
-  const gameRef = useRef(new Chess());
-  const startedAtRef = useRef<number | null>(null);
+function loadGame(saved?: ChessProgress): Chess {
+  if (saved?.fen) {
+    try {
+      return new Chess(saved.fen);
+    } catch {
+      return new Chess();
+    }
+  }
+  return new Chess();
+}
+
+export function ChessMatch({ saved, onWin, onProgressChange }: Props) {
+  const gameRef = useRef(loadGame(saved));
+  const startedAtRef = useRef<number | null>(saved?.startedAt ?? null);
   const [fen, setFen] = useState(gameRef.current.fen());
-  const [outcome, setOutcome] = useState<Outcome>('playing');
+  const [outcome, setOutcome] = useState<Outcome>(saved?.outcome ?? 'playing');
   const [statusText, setStatusText] = useState(
-    'You play white. Checkmate the computer to win your code.'
+    saved?.statusText ?? DEFAULT_STATUS
   );
 
-  const reset = useCallback(() => {
-    gameRef.current = new Chess();
-    startedAtRef.current = null;
-    setFen(gameRef.current.fen());
-    setOutcome('playing');
-    setStatusText(
-      'You play white. Checkmate the computer to win your code.'
-    );
-  }, []);
+  const persist = useCallback(
+    (patch: Partial<ChessProgress>) => {
+      onProgressChange({
+        fen: gameRef.current.fen(),
+        startedAt: startedAtRef.current,
+        outcome,
+        statusText,
+        ...patch,
+      });
+    },
+    [onProgressChange, outcome, statusText]
+  );
+
+  useEffect(() => {
+    persist({});
+  }, [fen, outcome, statusText, persist]);
 
   const finishWin = useCallback(() => {
     const start = startedAtRef.current ?? Date.now();
     const elapsed = Math.max(1, Date.now() - start);
-    setOutcome('won');
+    setOutcome('playing');
     setStatusText('Victory! Sending your code…');
     onWin(elapsed);
   }, [onWin]);
@@ -79,44 +103,55 @@ export function ChessMatch({ onWin }: Props) {
       }
       if (!move) return false;
 
-      setFen(game.fen());
+      const nextFen = game.fen();
+      setFen(nextFen);
 
       if (playerWon(game)) {
         finishWin();
         return true;
       }
       if (playerLost(game)) {
+        const text = 'Checkmate — the computer wins. Try again.';
         setOutcome('lost');
-        setStatusText('Checkmate — the computer wins. Try again.');
+        setStatusText(text);
+        persist({ fen: nextFen, outcome: 'lost', statusText: text });
         return true;
       }
       if (game.isDraw()) {
+        const text = 'Draw. Start over and go for checkmate.';
         setOutcome('draw');
-        setStatusText('Draw. Reset and go for checkmate.');
+        setStatusText(text);
+        persist({ fen: nextFen, outcome: 'draw', statusText: text });
         return true;
       }
 
       pickBotMove(game);
-      setFen(game.fen());
+      const afterBotFen = game.fen();
+      setFen(afterBotFen);
 
       if (playerWon(game)) {
         finishWin();
         return true;
       }
       if (playerLost(game)) {
+        const text = 'Checkmate — the computer wins. Try again.';
         setOutcome('lost');
-        setStatusText('Checkmate — the computer wins. Try again.');
+        setStatusText(text);
+        persist({ fen: afterBotFen, outcome: 'lost', statusText: text });
         return true;
       }
       if (game.isDraw()) {
+        const text = 'Draw. Start over and go for checkmate.';
         setOutcome('draw');
-        setStatusText('Draw. Reset and go for checkmate.');
+        setStatusText(text);
+        persist({ fen: afterBotFen, outcome: 'draw', statusText: text });
         return true;
       }
 
+      persist({ fen: afterBotFen, outcome: 'playing' });
       return true;
     },
-    [finishWin, outcome]
+    [finishWin, outcome, persist]
   );
 
   const boardOptions = useMemo(
@@ -129,11 +164,12 @@ export function ChessMatch({ onWin }: Props) {
         outcome === 'playing' &&
         gameRef.current.turn() === 'w' &&
         piece.pieceType[0] === 'w',
-      darkSquareStyle: { backgroundColor: '#2a1f5c' },
-      lightSquareStyle: { backgroundColor: '#4b3aa8' },
+      darkSquareStyle: { backgroundColor: '#1a1a1a' },
+      lightSquareStyle: { backgroundColor: '#2e2e2e' },
       boardStyle: {
         borderRadius: '8px',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.35)',
+        border: '1px solid #2a2a2a',
+        boxShadow: '0 4px 24px rgba(0, 0, 0, 0.6)',
       },
     }),
     [fen, onPieceDrop, outcome]
@@ -143,11 +179,6 @@ export function ChessMatch({ onWin }: Props) {
     <div className="chess-wrap">
       <p className="timer">{statusText}</p>
       <Chessboard options={boardOptions} />
-      {outcome === 'lost' || outcome === 'draw' ? (
-        <button type="button" className="primary" onClick={reset}>
-          Play again
-        </button>
-      ) : null}
     </div>
   );
 }

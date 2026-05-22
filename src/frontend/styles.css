@@ -1,12 +1,16 @@
 @import 'tailwindcss';
 
 :root {
-  --bg: #0a0612;
-  --surface: #14101f;
-  --accent: #7c5cff;
-  --accent-soft: #b8a6ff;
-  --text: #f4f0ff;
-  --muted: #9b92b8;
+  --bg: #000000;
+  --surface: #111111;
+  --accent: #ea0000;
+  --accent-hover: #e11d48;
+  --text: #ffffff;
+  --muted: #a3a3a3;
+  --border: #2a2a2a;
+  --input-bg: #0a0a0a;
+  --chess-dark: #1a1a1a;
+  --chess-light: #2e2e2e;
 }
 
 * {
@@ -21,12 +25,18 @@ body {
     -apple-system,
     'Segoe UI',
     sans-serif;
-  background: radial-gradient(ellipse at top, #1a1030 0%, var(--bg) 55%);
+  background: var(--bg);
   color: var(--text);
 }
 
 a {
-  color: var(--accent-soft);
+  color: var(--text);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+a:hover {
+  color: var(--accent-hover);
 }
 
 .page {
@@ -36,11 +46,10 @@ a {
 }
 
 .card {
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 1rem;
   padding: 1.5rem;
-  backdrop-filter: blur(8px);
 }
 
 h1 {
@@ -59,10 +68,16 @@ input[type='password'] {
   width: 100%;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
-  border: 1px solid #3a3058;
-  background: #0f0b18;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
   color: var(--text);
   font-size: 1rem;
+}
+
+input[type='email']:focus,
+input[type='password']:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 
 button.primary {
@@ -71,11 +86,16 @@ button.primary {
   padding: 0.85rem 1rem;
   border: none;
   border-radius: 0.5rem;
-  background: linear-gradient(135deg, var(--accent), #5a8dff);
-  color: white;
+  background: var(--accent);
+  color: var(--text);
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+button.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
 }
 
 button.primary:disabled {
@@ -83,8 +103,28 @@ button.primary:disabled {
   cursor: not-allowed;
 }
 
+button.secondary {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+button.secondary:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
 .error {
-  color: #ff8a8a;
+  color: var(--accent-hover);
   font-size: 0.9rem;
   margin-top: 0.5rem;
 }
@@ -110,9 +150,14 @@ button.primary:disabled {
   cursor: pointer;
   font-weight: 700;
   font-size: 1.25rem;
-  color: white;
-  background: linear-gradient(145deg, #4b3aa8, #2a1f5c);
-  transition: transform 0.1s ease;
+  color: var(--text);
+  background: linear-gradient(145deg, #3a3a3a, #1a1a1a);
+  transition: transform 0.1s ease, background 0.15s ease;
+}
+
+.puzzle-tile:not(.empty):hover {
+  transform: scale(1.03);
+  background: linear-gradient(145deg, var(--accent), #9f1239);
 }
 
 .puzzle-tile.empty {
@@ -120,14 +165,10 @@ button.primary:disabled {
   cursor: default;
 }
 
-.puzzle-tile:not(.empty):hover {
-  transform: scale(1.03);
-}
-
 .timer {
   text-align: center;
   font-variant-numeric: tabular-nums;
-  color: var(--accent-soft);
+  color: var(--accent);
   margin-bottom: 0.5rem;
 }
 
@@ -141,7 +182,7 @@ th,
 td {
   text-align: left;
   padding: 0.5rem 0.25rem;
-  border-bottom: 1px solid #2a2340;
+  border-bottom: 1px solid var(--border);
 }
 
 th {
@@ -182,15 +223,17 @@ th {
   gap: 0.25rem;
   padding: 0.85rem;
   border-radius: 0.5rem;
-  border: 1px solid #3a3058;
-  background: #0f0b18;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
   cursor: pointer;
-  transition: border-color 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
 }
 
 .game-picker-option:has(input:checked) {
   border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, #0f0b18);
+  background: color-mix(in srgb, var(--accent) 14%, var(--input-bg));
 }
 
 .game-picker-option input {
