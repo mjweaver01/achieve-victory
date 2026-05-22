@@ -96,11 +96,7 @@ export function PuzzlePage() {
           <PuzzleComplete
             status={status}
             message={message}
-            timeSec={
-              savedPuzzle?.completionTimeMs != null
-                ? savedPuzzle.completionTimeMs / 1000
-                : undefined
-            }
+            timeMs={savedPuzzle?.completionTimeMs}
             footer={
               <>
                 {status === 'done' ? (

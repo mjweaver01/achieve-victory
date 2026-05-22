@@ -10,6 +10,7 @@ import {
 } from 'recharts';
 import { Layout } from '../components/Layout';
 import type { AdminStatsResponse } from '../../types/api';
+import { formatDuration } from '../utils/time';
 
 export function AdminPage() {
   const [key, setKey] = useState('');
@@ -98,7 +99,7 @@ export function AdminPage() {
                 {stats.topCompletions.map(row => (
                   <tr key={row.email}>
                     <td>{row.email}</td>
-                    <td>{(row.completionTimeMs / 1000).toFixed(1)}s</td>
+                    <td>{formatDuration(row.completionTimeMs)}</td>
                     <td>{row.code}</td>
                   </tr>
                 ))}

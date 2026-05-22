@@ -1,11 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Layout } from '../components/Layout';
 import type { LeaderboardResponse } from '../../types/api';
-
-function formatTime(ms: number): string {
-  const sec = ms / 1000;
-  return `${sec.toFixed(1)}s`;
-}
+import { formatDuration } from '../utils/time';
 
 function formatDate(ts: number): string {
   return new Date(ts).toLocaleDateString();
@@ -55,7 +51,7 @@ export function LeaderboardPage() {
               <tr key={`${row.rank}-${row.email}`}>
                 <td>{row.rank}</td>
                 <td>{row.email}</td>
-                <td>{formatTime(row.completionTimeMs)}</td>
+                <td>{formatDuration(row.completionTimeMs)}</td>
                 <td>{formatDate(row.completedAt)}</td>
               </tr>
             ))}

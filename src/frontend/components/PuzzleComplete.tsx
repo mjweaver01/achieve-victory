@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { RedeemProgress } from '../utils/gameProgress';
+import { formatDuration } from '../utils/time';
 
 type RedeemStatus = Exclude<RedeemProgress['status'], 'playing'>;
 
@@ -8,14 +9,14 @@ const SUBMITTING_MESSAGE = 'Sending your code…';
 type Props = {
   status: RedeemStatus;
   message?: string;
-  timeSec?: number;
+  timeMs?: number;
   footer?: ReactNode;
 };
 
 export function PuzzleComplete({
   status,
   message = '',
-  timeSec,
+  timeMs,
   footer,
 }: Props) {
   const showLogo = status !== 'error';
@@ -35,8 +36,8 @@ export function PuzzleComplete({
           height={320}
         />
       ) : null}
-      {timeSec != null && Number.isFinite(timeSec) ? (
-        <p className="timer">Time: {timeSec.toFixed(1)}s</p>
+      {timeMs != null && Number.isFinite(timeMs) ? (
+        <p className="timer">Time: {formatDuration(timeMs)}</p>
       ) : null}
       {body ? (
         <p className={status === 'error' ? 'error' : undefined}>{body}</p>

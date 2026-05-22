@@ -8,6 +8,7 @@ import {
   PUZZLE_SIZE,
   tileLabel,
 } from '../utils/puzzleBoard';
+import { formatDuration } from '../utils/time';
 
 type Props = {
   saved?: PuzzleProgress;
@@ -114,14 +115,14 @@ export function SlidingPuzzle({
     [done, onComplete, onProgressChange, startedAt]
   );
 
-  const timerSec = elapsedNow(startedAt, elapsedMs, done) / 1000;
+  const timerMs = elapsedNow(startedAt, elapsedMs, done);
 
   if (done) return null;
 
   return (
     <div>
       <p className="timer">
-        Time: {Number.isFinite(timerSec) ? timerSec.toFixed(1) : '0.0'}s
+        Time: {formatDuration(timerMs)}
       </p>
       <div
         className="puzzle-grid"
