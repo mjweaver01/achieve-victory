@@ -1,7 +1,8 @@
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Route, Routes } from 'react-router';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { HomePage } from './pages/HomePage';
-import { GamePage } from './pages/GamePage';
+import { PuzzlePage } from './pages/PuzzlePage';
+import { ChessPage } from './pages/ChessPage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
 import { AdminPage } from './pages/AdminPage';
 import './styles.css';
@@ -11,7 +12,9 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/play" element={<GamePage />} />
+        <Route path="/play" element={<Navigate to="/play/puzzle" replace />} />
+        <Route path="/play/puzzle" element={<PuzzlePage />} />
+        <Route path="/play/chess" element={<ChessPage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
         <Route path="/admin" element={<AdminPage />} />
       </Routes>

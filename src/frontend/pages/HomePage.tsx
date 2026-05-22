@@ -2,32 +2,15 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Layout } from '../components/Layout';
 import type { StartResponse } from '../../types/api';
-
-const SESSION_KEY = 'madeon_session';
-
-export function getStoredSession(): {
-  sessionId: string;
-  email: string;
-} | null {
-  const raw = sessionStorage.getItem(SESSION_KEY);
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as { sessionId: string; email: string };
-  } catch {
-    return null;
-  }
-}
-
-export function storeSession(sessionId: string, email: string) {
-  sessionStorage.setItem(
-    SESSION_KEY,
-    JSON.stringify({ sessionId, email })
-  );
-}
+import {
+  storeSession,
+  type GameType,
+} from '../utils/session';
 
 export function HomePage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
+  const [game, setGame] = useState<GameType>('puzzle');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -55,8 +38,9 @@ export function HomePage() {
       }
 
       if ('sessionId' in data) {
-        storeSession(data.sessionId, email.trim().toLowerCase());
-        navigate('/play');
+        const normalized = email.trim().toLowerCase();
+        storeSession(data.sessionId, normalized, game);
+        navigate(`/play/${game}`);
       }
     } catch {
       setError('Network error — try again.');
@@ -68,7 +52,7 @@ export function HomePage() {
   return (
     <Layout
       title="Victory Game"
-      subtitle="Enter your email, solve the puzzle, get your discount code."
+      subtitle="Enter your email, pick a game, and earn your discount code."
     >
       <div className="card">
         <form onSubmit={handleSubmit}>
@@ -82,6 +66,37 @@ export function HomePage() {
             onChange={e => setEmail(e.target.value)}
             placeholder="you@example.com"
           />
+
+          <p className="game-picker-label">Choose your game</p>
+          <div className="game-picker">
+            <label className="game-picker-option">
+              <input
+                type="radio"
+                name="game"
+                value="puzzle"
+                checked={game === 'puzzle'}
+                onChange={() => setGame('puzzle')}
+              />
+              <span className="game-picker-title">Image puzzle</span>
+              <span className="game-picker-desc">
+                Slide the tiles — any solve wins
+              </span>
+            </label>
+            <label className="game-picker-option">
+              <input
+                type="radio"
+                name="game"
+                value="chess"
+                checked={game === 'chess'}
+                onChange={() => setGame('chess')}
+              />
+              <span className="game-picker-title">Chess</span>
+              <span className="game-picker-desc">
+                Beat the computer by checkmate
+              </span>
+            </label>
+          </div>
+
           {error ? <p className="error">{error}</p> : null}
           <button className="primary" type="submit" disabled={loading}>
             {loading ? 'Starting…' : 'Play'}

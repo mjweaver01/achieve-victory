@@ -32,6 +32,8 @@ const server = Bun.serve({
   routes: {
     '/': indexPageHtml,
     '/play': indexPageHtml,
+    '/play/puzzle': indexPageHtml,
+    '/play/chess': indexPageHtml,
     '/leaderboard': indexPageHtml,
     '/admin': indexPageHtml,
 
