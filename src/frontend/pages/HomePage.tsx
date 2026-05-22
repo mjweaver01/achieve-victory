@@ -51,12 +51,14 @@ export function HomePage() {
 
   return (
     <Layout
-      title="Victory Game"
+      title="ACHIEVE VICTORY"
       subtitle="Enter your email, pick a game, and earn your discount code."
     >
       <div className="card">
         <form onSubmit={handleSubmit}>
-          <label htmlFor="email">Email</label>
+          <label htmlFor="email" className="field-label">
+            Email
+          </label>
           <input
             id="email"
             type="email"
@@ -67,7 +69,7 @@ export function HomePage() {
             placeholder="you@example.com"
           />
 
-          <p className="game-picker-label">Choose your game</p>
+          <p className="field-label">Choose your game</p>
           <div className="game-picker">
             <label className="game-picker-option">
               <input
@@ -77,9 +79,14 @@ export function HomePage() {
                 checked={game === 'puzzle'}
                 onChange={() => setGame('puzzle')}
               />
+              <img
+                src="/images/MINIDOLLS_L.png"
+                alt=""
+                className="game-picker-icon"
+              />
               <span className="game-picker-title">Image puzzle</span>
               <span className="game-picker-desc">
-                Slide the tiles — any solve wins
+                Slide the tiles, any solution wins
               </span>
             </label>
             <label className="game-picker-option">
@@ -89,6 +96,11 @@ export function HomePage() {
                 value="chess"
                 checked={game === 'chess'}
                 onChange={() => setGame('chess')}
+              />
+              <img
+                src="/images/MINIDOLLS_R.png"
+                alt=""
+                className="game-picker-icon"
               />
               <span className="game-picker-title">Chess</span>
               <span className="game-picker-desc">

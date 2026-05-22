@@ -48,6 +48,7 @@ function servePublicFile(pathname: string): Response | undefined {
     jpeg: 'image/jpeg',
     gif: 'image/gif',
     webp: 'image/webp',
+    avif: 'image/avif',
     css: 'text/css',
     ico: 'image/x-icon',
     woff2: 'font/woff2',
@@ -58,7 +59,7 @@ function servePublicFile(pathname: string): Response | undefined {
   const headers: Record<string, string> = { 'Content-Type': contentType };
 
   if (
-    ['svg', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'css', 'woff2', 'woff'].includes(
+    ['svg', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'avif', 'css', 'woff2', 'woff'].includes(
       ext ?? ''
     )
   ) {
