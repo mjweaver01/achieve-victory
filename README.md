@@ -2,8 +2,6 @@
 
 Standalone promo web app: email capture → sliding puzzle → personalized Shopify discount via Resend.
 
-Full build plan: `~/Websites/digi-twin/Projects/Madeon - Promo Game/Plan.md`
-
 ## Stack
 
 - Bun + React (HTML import bundling)
