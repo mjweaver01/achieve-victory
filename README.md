@@ -17,7 +17,7 @@ Full build plan: `~/Websites/digi-twin/Projects/Madeon - Promo Game/Plan.md`
 ```bash
 bun install
 cp .env.example .env
-# Add SHOPIFY_* and RESEND_* when testing end-to-end redemption
+# Optional locally: leave SHOPIFY_* / RESEND_* empty — dev auto-uses mock codes (printed in terminal)
 bun run dev
 ```
 
@@ -31,6 +31,7 @@ Open http://localhost:3847
 | `/api/complete` | POST | `{ sessionId, email, completionTimeMs }` |
 | `/api/leaderboard` | GET | Public anonymized leaderboard |
 | `/api/admin` | GET | `?key=` or `x-admin-secret` header |
+| `/api/dev/complete` | POST | Non-production only. Same body as `/api/complete`; `?key=` or `x-admin-secret` |
 
 ## Status
 

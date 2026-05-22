@@ -1,21 +1,11 @@
 import { sql } from 'kysely';
 import { codesByDayExpr, getDb } from '../db/index';
 import type { AdminStatsResponse } from '../types/api';
+import { isAdminAuthorized } from '../utils/adminAuth';
 import { error, json } from '../utils/http';
 
-function isAuthorized(req: Request): boolean {
-  const secret = process.env.ADMIN_SECRET;
-  if (!secret) return false;
-
-  const url = new URL(req.url);
-  const queryKey = url.searchParams.get('key');
-  const headerKey = req.headers.get('x-admin-secret');
-
-  return queryKey === secret || headerKey === secret;
-}
-
 export async function getAdmin(req: Request): Promise<Response> {
-  if (!isAuthorized(req)) {
+  if (!isAdminAuthorized(req)) {
     return error('Unauthorized', 401);
   }
 

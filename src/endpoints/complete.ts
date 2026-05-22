@@ -1,22 +1,15 @@
 import { getDb } from '../db/index';
 import {
-  findOrCreateCustomer,
-  isShopifyConfigured,
-  mintDiscountCode,
-} from '../services/shopify';
-import { isResendConfigured, sendDiscountEmail } from '../services/resend';
+  fulfillReward,
+  isRewardSystemConfigured,
+} from '../services/rewards';
 import type { CompleteRequest, CompleteResponse } from '../types/api';
 import { validateEmail } from '../utils/emailValidation';
 import { error, json } from '../utils/http';
 
-export async function postComplete(req: Request): Promise<Response> {
-  let body: CompleteRequest;
-  try {
-    body = (await req.json()) as CompleteRequest;
-  } catch {
-    return error('Invalid JSON body', 400);
-  }
-
+export async function redeemSession(
+  body: CompleteRequest
+): Promise<Response> {
   const { sessionId, completionTimeMs, score } = body;
   if (!sessionId || !body.email || completionTimeMs == null) {
     return error('sessionId, email, and completionTimeMs are required', 400);
@@ -55,7 +48,7 @@ export async function postComplete(req: Request): Promise<Response> {
     return json({ success: true } satisfies CompleteResponse);
   }
 
-  if (!isShopifyConfigured() || !isResendConfigured()) {
+  if (!isRewardSystemConfigured()) {
     return error('Reward system is not configured', 503);
   }
 
@@ -70,20 +63,28 @@ export async function postComplete(req: Request): Promise<Response> {
     .where('id', '=', sessionId)
     .execute();
 
-  const { customerId } = await findOrCreateCustomer(email);
-  const code = await mintDiscountCode(customerId);
+  const { code, shopifyCustomerId } = await fulfillReward(email);
 
   await db
     .insertInto('codes')
     .values({
       email,
       code,
-      shopify_customer_id: customerId,
+      shopify_customer_id: shopifyCustomerId,
       created_at: now,
     })
     .execute();
 
-  await sendDiscountEmail(email, code);
-
   return json({ success: true } satisfies CompleteResponse);
+}
+
+export async function postComplete(req: Request): Promise<Response> {
+  let body: CompleteRequest;
+  try {
+    body = (await req.json()) as CompleteRequest;
+  } catch {
+    return error('Invalid JSON body', 400);
+  }
+
+  return redeemSession(body);
 }

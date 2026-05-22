@@ -1,10 +1,13 @@
 import indexPageHtml from './frontend/index.html';
 import { postStart } from './endpoints/start';
 import { postComplete } from './endpoints/complete';
+import { postDevComplete } from './endpoints/devComplete';
 import { getLeaderboard } from './endpoints/leaderboard';
 import { getAdmin } from './endpoints/admin';
 import { initDb } from './db/index';
 import { rateLimitApi } from './middleware/rateLimit';
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 console.log(
   `🎵 Madeon promo game — ${process.env.NODE_ENV ?? 'development'} mode`
@@ -25,8 +28,7 @@ function withRateLimit(
 const server = Bun.serve({
   port: process.env.PORT ?? 3847,
   hostname:
-    process.env.HOSTNAME ??
-    (process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost'),
+    process.env.HOSTNAME ?? (isProduction ? '0.0.0.0' : 'localhost'),
   routes: {
     '/': indexPageHtml,
     '/play': indexPageHtml,
@@ -35,10 +37,11 @@ const server = Bun.serve({
 
     '/api/start': { POST: withRateLimit(postStart) },
     '/api/complete': { POST: withRateLimit(postComplete) },
+    '/api/dev/complete': { POST: postDevComplete },
     '/api/leaderboard': { GET: getLeaderboard },
     '/api/admin': { GET: getAdmin },
   },
-  development: process.env.NODE_ENV !== 'production',
+  development: !isProduction,
 });
 
 console.log(`Listening at http://${server.hostname}:${server.port}`);
