@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__obsidian-mcp-tools__search_vault_simple",
+      "mcp__obsidian-mcp-tools__list_vault_files",
+      "mcp__obsidian-mcp-tools__get_vault_file"
+    ]
+  }
+}

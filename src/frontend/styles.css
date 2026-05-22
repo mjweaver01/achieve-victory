@@ -1,0 +1,164 @@
+@import 'tailwindcss';
+
+:root {
+  --bg: #0a0612;
+  --surface: #14101f;
+  --accent: #7c5cff;
+  --accent-soft: #b8a6ff;
+  --text: #f4f0ff;
+  --muted: #9b92b8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+  background: radial-gradient(ellipse at top, #1a1030 0%, var(--bg) 55%);
+  color: var(--text);
+}
+
+a {
+  color: var(--accent-soft);
+}
+
+.page {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 3rem;
+}
+
+.card {
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  backdrop-filter: blur(8px);
+}
+
+h1 {
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  letter-spacing: 0.04em;
+  margin: 0 0 0.5rem;
+}
+
+.subtitle {
+  color: var(--muted);
+  margin: 0 0 1.5rem;
+}
+
+input[type='email'],
+input[type='password'] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #3a3058;
+  background: #0f0b18;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+button.primary {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: linear-gradient(135deg, var(--accent), #5a8dff);
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+button.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #ff8a8a;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.nav {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.puzzle-grid {
+  display: grid;
+  gap: 4px;
+  width: min(100%, 320px);
+  aspect-ratio: 1;
+  margin: 1rem auto;
+}
+
+.puzzle-tile {
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: white;
+  background: linear-gradient(145deg, #4b3aa8, #2a1f5c);
+  transition: transform 0.1s ease;
+}
+
+.puzzle-tile.empty {
+  background: transparent;
+  cursor: default;
+}
+
+.puzzle-tile:not(.empty):hover {
+  transform: scale(1.03);
+}
+
+.timer {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-soft);
+  margin-bottom: 0.5rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.5rem 0.25rem;
+  border-bottom: 1px solid #2a2340;
+}
+
+th {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.card-stack {
+  margin-top: 1rem;
+}
+
+.card-stack h2 {
+  font-size: 1.1rem;
+  margin: 0 0 0.75rem;
+}
+
+.chart {
+  width: 100%;
+  height: 240px;
+}
