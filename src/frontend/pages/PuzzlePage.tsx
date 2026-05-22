@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { Layout } from '../components/Layout';
 import { PuzzleComplete } from '../components/PuzzleComplete';
 import { SlidingPuzzle } from '../components/SlidingPuzzle';
+import { DevSkipButton } from '../components/DevSkipButton';
 import { ResendCodeButton } from '../components/ResendCodeButton';
 import { StartOverButton } from '../components/StartOverButton';
 import { useRedeemSession } from '../hooks/useRedeemSession';
@@ -25,6 +26,8 @@ export function PuzzlePage() {
     resendCode,
     resendBusy,
     resendNotice,
+    devComplete,
+    devSkipBusy,
   } = useRedeemSession();
   const [gameKey, setGameKey] = useState(0);
 
@@ -75,6 +78,17 @@ export function PuzzlePage() {
               }
               onComplete={ms => void redeem(ms)}
               onProgressChange={handleProgress}
+            />
+            <DevSkipButton
+              disabled={devSkipBusy}
+              onClick={() => {
+                const ms =
+                  savedPuzzle?.elapsedMs ??
+                  (savedPuzzle?.startedAt
+                    ? Date.now() - savedPuzzle.startedAt
+                    : 1000);
+                void devComplete(ms);
+              }}
             />
             <StartOverButton onClick={handleStartOver} />
           </>

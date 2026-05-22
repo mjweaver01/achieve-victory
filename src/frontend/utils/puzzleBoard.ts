@@ -79,3 +79,18 @@ export function tileLabel(value: number): string {
   if (!Number.isInteger(value) || value < 0 || value >= EMPTY) return '';
   return String(value + 1);
 }
+
+export function applyPuzzleMove(
+  board: number[],
+  tileIndex: number
+): number[] | null {
+  if (!isValidPuzzleBoard(board)) return null;
+
+  const empty = board.indexOf(EMPTY);
+  if (empty === -1) return null;
+  if (!getPuzzleNeighbors(empty).includes(tileIndex)) return null;
+
+  const next = [...board];
+  [next[empty], next[tileIndex]] = [next[tileIndex]!, next[empty]!];
+  return next;
+}

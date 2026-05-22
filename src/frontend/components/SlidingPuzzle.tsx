@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PuzzleProgress } from '../utils/gameProgress';
 import {
+  applyPuzzleMove,
   createFreshPuzzleBoard,
-  getPuzzleNeighbors,
   isPuzzleSolved,
   normalizePuzzleBoard,
   PUZZLE_SIZE,
@@ -90,14 +90,8 @@ export function SlidingPuzzle({
 
       setBoard(prev => {
         const normalized = normalizePuzzleBoard(prev);
-        const empty = normalized.indexOf(PUZZLE_SIZE * PUZZLE_SIZE - 1);
-        if (empty === -1) return createFreshPuzzleBoard();
-
-        const neighbors = getPuzzleNeighbors(empty);
-        if (!neighbors.includes(index)) return normalized;
-
-        const next = [...normalized];
-        [next[empty], next[index]] = [next[index]!, next[empty]!];
+        const next = applyPuzzleMove(normalized, index);
+        if (!next) return normalized;
 
         if (isPuzzleSolved(next)) {
           const ms = Math.max(1, Date.now() - start);

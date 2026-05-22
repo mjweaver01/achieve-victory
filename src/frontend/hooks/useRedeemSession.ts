@@ -5,6 +5,7 @@ import {
   saveRedeemProgress,
   type RedeemProgress,
 } from '../utils/gameProgress';
+import { getDevAdminSecret } from '../utils/devAdmin';
 import { getStoredSession } from '../utils/session';
 
 type Status = RedeemProgress['status'];
@@ -28,6 +29,7 @@ export function useRedeemSession() {
   );
   const [resendBusy, setResendBusy] = useState(false);
   const [resendNotice, setResendNotice] = useState('');
+  const [devSkipBusy, setDevSkipBusy] = useState(false);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -113,6 +115,49 @@ export function useRedeemSession() {
     }
   }, [status]);
 
+  const devComplete = useCallback(
+    async (completionTimeMs: number, score?: number) => {
+      const current = getStoredSession();
+      const secret = getDevAdminSecret();
+      if (!current || !secret) return;
+
+      setDevSkipBusy(true);
+      setStatus('submitting');
+      setMessage('');
+      try {
+        const res = await fetch('/api/dev/complete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-secret': secret,
+          },
+          body: JSON.stringify({
+            sessionId: current.sessionId,
+            email: current.email,
+            completionTimeMs: Math.max(1, completionTimeMs),
+            score,
+          }),
+        });
+        const data = (await res.json()) as { error?: string };
+
+        if (!res.ok) {
+          setStatus('error');
+          setMessage(data.error ?? 'Dev complete failed');
+          return;
+        }
+
+        setStatus('done');
+        setMessage('Check your inbox for your discount code.');
+      } catch {
+        setStatus('error');
+        setMessage('Network error — try again.');
+      } finally {
+        setDevSkipBusy(false);
+      }
+    },
+    []
+  );
+
   return {
     status,
     message,
@@ -121,5 +166,7 @@ export function useRedeemSession() {
     resendCode,
     resendBusy,
     resendNotice,
+    devComplete,
+    devSkipBusy,
   };
 }

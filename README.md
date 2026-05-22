@@ -38,6 +38,19 @@ Put images and fonts in `public/` (see `public/README.md`). They are served at t
 | `/api/admin` | GET | `?key=` or `x-admin-secret` header |
 | `/api/dev/complete` | POST | Non-production only. Same body as `/api/complete`; `?key=` or `x-admin-secret` |
 
+### Dev: skip a game (local)
+
+1. Set `ADMIN_SECRET` in `.env` and restart `bun dev`.
+2. Visit `http://localhost:3847/solve?key=YOUR_ADMIN_SECRET` once (stores the key for **Dev: skip to code** on puzzle/chess).
+3. Or call the API directly:
+
+```bash
+curl -X POST http://localhost:3847/api/dev/complete \
+  -H 'Content-Type: application/json' \
+  -H 'x-admin-secret: YOUR_ADMIN_SECRET' \
+  -d '{"sessionId":"...","email":"you@example.com","completionTimeMs":5000}'
+```
+
 ## Status
 
 Phase 1 (backend skeleton + routes + DB) and initial frontend are in place. Next: album art puzzle assets, React Email template, Railway deploy, client answers on open questions in the plan.

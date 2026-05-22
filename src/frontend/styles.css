@@ -218,6 +218,14 @@ button.secondary:hover {
   font-size: 1.15rem;
 }
 
+.dev-skip-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.35;
+  text-align: center;
+}
+
 .puzzle-grid {
   display: grid;
   gap: 4px;

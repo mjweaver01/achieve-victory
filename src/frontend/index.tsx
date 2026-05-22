@@ -16,7 +16,7 @@ function App() {
         <Route path="/play/puzzle" element={<PuzzlePage />} />
         <Route path="/play/chess" element={<ChessPage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
-        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/solve" element={<AdminPage />} />
       </Routes>
     </BrowserRouter>
   );

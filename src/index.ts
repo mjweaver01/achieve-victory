@@ -80,7 +80,7 @@ const server = Bun.serve({
     '/play/puzzle': indexPageHtml,
     '/play/chess': indexPageHtml,
     '/leaderboard': indexPageHtml,
-    '/admin': indexPageHtml,
+    '/solve': indexPageHtml,
 
     '/api/start': {
       POST: isProduction ? withRateLimit(postStart) : postStart,

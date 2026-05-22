@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { storeDevAdminSecret } from '../utils/devAdmin';
 import {
   Bar,
   BarChart,
@@ -15,6 +16,14 @@ export function AdminPage() {
   const [stats, setStats] = useState<AdminStatsResponse | null>(null);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    const fromUrl = new URLSearchParams(window.location.search).get('key');
+    if (fromUrl) {
+      setKey(fromUrl);
+      storeDevAdminSecret(fromUrl);
+    }
+  }, []);
+
   async function load() {
     setError('');
     try {
@@ -28,22 +37,23 @@ export function AdminPage() {
         return;
       }
       setStats(data);
+      storeDevAdminSecret(key);
     } catch {
       setError('Network error');
     }
   }
 
   return (
-    <Layout title="Admin" subtitle="Internal stats — key required.">
+    <Layout title="Solve" subtitle="Internal tools — key required.">
       <div className="card">
         <input
           type="password"
-          placeholder="Admin secret"
+          placeholder="Solve key"
           value={key}
           onChange={e => setKey(e.target.value)}
         />
         <button className="primary" type="button" onClick={() => void load()}>
-          Load stats
+          Load tools
         </button>
         {error ? <p className="error">{error}</p> : null}
       </div>
