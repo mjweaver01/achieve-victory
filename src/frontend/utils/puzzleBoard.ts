@@ -33,7 +33,7 @@ export function getPuzzleNeighbors(emptyIndex: number): number[] {
   if (row > 0) neighbors.push(emptyIndex - PUZZLE_SIZE);
   if (row < PUZZLE_SIZE - 1) neighbors.push(emptyIndex + PUZZLE_SIZE);
   if (col > 0) neighbors.push(emptyIndex - 1);
-  if (col < PUZZLE_SIZE - 1) neighbors.push(emptyIndex + PUZZLE_SIZE);
+  if (col < PUZZLE_SIZE - 1) neighbors.push(emptyIndex + 1);
   return neighbors;
 }
 
