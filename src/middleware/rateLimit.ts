@@ -20,7 +20,7 @@ export function rateLimitApi(req: Request): Response | null {
   const ip = clientIp(req);
   const now = Date.now();
   const windowMs = 60 * 60 * 1000;
-  const maxRequests = 3;
+  const maxRequests = 50;
 
   let bucket = buckets.get(ip);
 
