@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { ChessMatch } from '../components/ChessMatch';
 import { Layout } from '../components/Layout';
+import { PuzzleComplete } from '../components/PuzzleComplete';
 import { StartOverButton } from '../components/StartOverButton';
 import { useRedeemSession } from '../hooks/useRedeemSession';
 import {
@@ -65,14 +66,13 @@ export function ChessPage() {
             />
             <StartOverButton onClick={handleStartOver} />
           </>
-        ) : null}
-        {status === 'submitting' ? <p>Sending your code…</p> : null}
-        {status === 'done' || status === 'error' ? (
-          <>
-            <p className={status === 'error' ? 'error' : undefined}>{message}</p>
-            <StartOverButton onClick={handleStartOver} />
-          </>
-        ) : null}
+        ) : (
+          <PuzzleComplete
+            status={status}
+            message={message}
+            footer={<StartOverButton onClick={handleStartOver} />}
+          />
+        )}
       </div>
     </Layout>
   );

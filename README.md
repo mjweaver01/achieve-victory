@@ -23,6 +23,10 @@ bun run dev
 
 Open http://localhost:3847
 
+## Static assets
+
+Put images and fonts in `public/` (see `public/README.md`). They are served at the site root, e.g. `public/images/logo.svg` → `/images/logo.svg`.
+
 ## API
 
 | Route | Method | Description |

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Layout } from '../components/Layout';
+import { PuzzleComplete } from '../components/PuzzleComplete';
 import { SlidingPuzzle } from '../components/SlidingPuzzle';
 import { StartOverButton } from '../components/StartOverButton';
 import { useRedeemSession } from '../hooks/useRedeemSession';
@@ -68,14 +69,18 @@ export function PuzzlePage() {
             />
             <StartOverButton onClick={handleStartOver} />
           </>
-        ) : null}
-        {status === 'submitting' ? <p>Sending your code…</p> : null}
-        {status === 'done' || status === 'error' ? (
-          <>
-            <p className={status === 'error' ? 'error' : undefined}>{message}</p>
-            <StartOverButton onClick={handleStartOver} />
-          </>
-        ) : null}
+        ) : (
+          <PuzzleComplete
+            status={status}
+            message={message}
+            timeSec={
+              savedPuzzle?.completionTimeMs != null
+                ? savedPuzzle.completionTimeMs / 1000
+                : undefined
+            }
+            footer={<StartOverButton onClick={handleStartOver} />}
+          />
+        )}
       </div>
     </Layout>
   );

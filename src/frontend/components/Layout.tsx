@@ -12,6 +12,17 @@ export function Layout({
 }) {
   return (
     <div className="page">
+      <header className="site-header">
+        <Link to="/" className="site-logo-link">
+          <img
+            src="/images/logo.png"
+            alt="Madeon"
+            className="site-logo"
+            width={240}
+            height={80}
+          />
+        </Link>
+      </header>
       <nav className="nav">
         <Link to="/">Play</Link>
         <Link to="/leaderboard">Leaderboard</Link>

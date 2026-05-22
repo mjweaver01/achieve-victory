@@ -122,10 +122,12 @@ export function SlidingPuzzle({
 
   const timerSec = elapsedNow(startedAt, elapsedMs, done) / 1000;
 
+  if (done) return null;
+
   return (
     <div>
       <p className="timer">
-        {done ? 'Complete!' : `Time: ${Number.isFinite(timerSec) ? timerSec.toFixed(1) : '0.0'}s`}
+        Time: {Number.isFinite(timerSec) ? timerSec.toFixed(1) : '0.0'}s
       </p>
       <div
         className="puzzle-grid"
@@ -140,7 +142,7 @@ export function SlidingPuzzle({
               type="button"
               className={`puzzle-tile${isEmpty ? ' empty' : ''}`}
               onClick={() => move(index)}
-              disabled={isEmpty || done}
+              disabled={isEmpty}
               aria-label={isEmpty ? 'empty' : `tile ${label}`}
             >
               {label}
