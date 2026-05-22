@@ -77,7 +77,7 @@ export function codesByDayExpr() {
 
 export async function initDb(): Promise<void> {
   const instance = getDb();
-  await runMigrations(instance);
+  await runMigrations(instance, { isPostgres: isPostgres() });
   if (isPostgres()) {
     console.log('[DB] PostgreSQL ready (DATABASE_URL)');
   } else {
