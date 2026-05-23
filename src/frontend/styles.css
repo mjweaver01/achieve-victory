@@ -203,6 +203,12 @@ button.secondary:hover {
   margin-top: 1rem;
 }
 
+.reward-code {
+  margin: 0.75rem 0 0;
+  font-size: 1.1rem;
+  color: var(--text);
+}
+
 .resend-code-notice {
   margin: 0.5rem 0 0;
   font-size: 0.85rem;

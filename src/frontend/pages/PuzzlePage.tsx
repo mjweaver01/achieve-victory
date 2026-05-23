@@ -21,6 +21,7 @@ export function PuzzlePage() {
   const {
     status,
     message,
+    code,
     redeem,
     resetRedeem,
     resendCode,
@@ -96,6 +97,7 @@ export function PuzzlePage() {
           <PuzzleComplete
             status={status}
             message={message}
+            code={code}
             timeMs={savedPuzzle?.completionTimeMs}
             footer={
               <>

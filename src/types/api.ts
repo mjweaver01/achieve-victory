@@ -9,7 +9,7 @@ export type CompleteRequest = {
   score?: number;
 };
 
-export type CompleteResponse = { success: true };
+export type CompleteResponse = { success: true; code: string };
 
 export type ResendCodeRequest = {
   sessionId: string;

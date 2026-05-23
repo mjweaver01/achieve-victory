@@ -2,6 +2,7 @@ import { getDb } from '../db/index';
 import {
   fulfillReward,
   isRewardSystemConfigured,
+  RewardEmailDeliveryError,
 } from '../services/rewards';
 import type { CompleteRequest, CompleteResponse } from '../types/api';
 import { validateEmail } from '../utils/emailValidation';
@@ -48,7 +49,10 @@ export async function redeemSession(
     console.log(
       `[reward] code already exists for ${email} (session=${sessionId}, code=${existingCode.code})`
     );
-    return json({ success: true } satisfies CompleteResponse);
+    return json({
+      success: true,
+      code: existingCode.code,
+    } satisfies CompleteResponse);
   }
 
   if (!isRewardSystemConfigured()) {
@@ -83,8 +87,27 @@ export async function redeemSession(
       `[reward] code created for ${email} (session=${sessionId}, code=${code}, timeMs=${completionTimeMs})`
     );
 
-    return json({ success: true } satisfies CompleteResponse);
+    return json({ success: true, code } satisfies CompleteResponse);
   } catch (err) {
+    if (err instanceof RewardEmailDeliveryError) {
+      await db
+        .insertInto('codes')
+        .values({
+          email,
+          code: err.code,
+          shopify_customer_id: err.shopifyCustomerId,
+          created_at: now,
+        })
+        .onConflict(oc => oc.column('email').doNothing())
+        .execute();
+
+      const msg = `${err.message} Your code is shown below.`;
+      console.error(
+        `[reward] email failed for ${email} (session=${sessionId}, code=${err.code}): ${err.message}`
+      );
+      return json({ error: msg, code: err.code }, 502);
+    }
+
     await db
       .updateTable('sessions')
       .set({

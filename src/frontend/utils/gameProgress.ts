@@ -4,6 +4,7 @@ import { normalizePuzzleBoard } from './puzzleBoard';
 export type RedeemProgress = {
   status: 'playing' | 'submitting' | 'done' | 'error';
   message: string;
+  code?: string;
 };
 
 export type PuzzleProgress = {
@@ -70,7 +71,7 @@ export function clearGameState(sessionId: string, game: GameType): void {
   if (!data || data.sessionId !== sessionId) return;
   if (game === 'puzzle') delete data.puzzle;
   else delete data.chess;
-  data.redeem = { status: 'playing', message: '' };
+  data.redeem = { status: 'playing', message: '', code: undefined };
   write(data);
 }
 

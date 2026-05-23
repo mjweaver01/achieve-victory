@@ -21,6 +21,7 @@ export function ChessPage() {
   const {
     status,
     message,
+    code,
     redeem,
     resetRedeem,
     resendCode,
@@ -92,6 +93,7 @@ export function ChessPage() {
           <PuzzleComplete
             status={status}
             message={message}
+            code={code}
             footer={
               <>
                 {status === 'done' ? (

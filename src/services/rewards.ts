@@ -8,6 +8,18 @@ import { isResendConfigured, sendDiscountEmail } from './resend';
 
 const devCodeId = customAlphabet('ABCDEFGHJKLMNPQRSTUVWXYZ23456789', 8);
 
+export class RewardEmailDeliveryError extends Error {
+  code: string;
+  shopifyCustomerId: string;
+
+  constructor(message: string, code: string, shopifyCustomerId: string) {
+    super(message);
+    this.name = 'RewardEmailDeliveryError';
+    this.code = code;
+    this.shopifyCustomerId = shopifyCustomerId;
+  }
+}
+
 export function useMockRewards(): boolean {
   if (process.env.NODE_ENV === 'production') return false;
   if (process.env.DEV_MOCK_REWARDS === 'false') return false;
@@ -44,6 +56,12 @@ export async function fulfillReward(
 
   const { customerId } = await findOrCreateCustomer(email);
   const code = await mintDiscountCode(customerId);
-  await sendDiscountEmail(email, code);
+  try {
+    await sendDiscountEmail(email, code);
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : 'Could not send reward email';
+    throw new RewardEmailDeliveryError(message, code, customerId);
+  }
   return { code, shopifyCustomerId: customerId };
 }

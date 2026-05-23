@@ -9,6 +9,7 @@ const SUBMITTING_MESSAGE = 'Sending your code…';
 type Props = {
   status: RedeemStatus;
   message?: string;
+  code?: string;
   timeMs?: number;
   footer?: ReactNode;
 };
@@ -16,6 +17,7 @@ type Props = {
 export function PuzzleComplete({
   status,
   message = '',
+  code = '',
   timeMs,
   footer,
 }: Props) {
@@ -41,6 +43,11 @@ export function PuzzleComplete({
       ) : null}
       {body ? (
         <p className={status === 'error' ? 'error' : undefined}>{body}</p>
+      ) : null}
+      {status !== 'submitting' && code ? (
+        <p className="reward-code">
+          Your code: <strong>{code}</strong>
+        </p>
       ) : null}
       {footer}
     </div>
