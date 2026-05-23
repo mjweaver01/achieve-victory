@@ -1,3 +1,5 @@
+import { toEpochMs } from '../../utils/epoch';
+
 function formatSecondCount(seconds: number): string {
   const rounded = Math.round(seconds * 10) / 10;
   if (Number.isInteger(rounded)) {
@@ -6,8 +8,8 @@ function formatSecondCount(seconds: number): string {
   return rounded.toFixed(1);
 }
 
-export function formatDuration(ms: number): string {
-  const safeMs = Math.max(0, Number.isFinite(ms) ? ms : 0);
+export function formatDuration(ms: number | string): string {
+  const safeMs = Math.max(0, toEpochMs(ms));
 
   if (safeMs >= 60 * 60 * 1000) {
     const totalSeconds = Math.floor(safeMs / 1000);

@@ -7,7 +7,10 @@ import pg from 'pg';
 import type { DB } from './types';
 import { runMigrations } from './schema';
 
-const { Pool } = pg;
+const { Pool, types } = pg;
+
+// node-pg returns int8 as strings by default; our schema stores epoch ms in bigint columns.
+types.setTypeParser(20, (value: string) => Number.parseInt(value, 10));
 
 let db: Kysely<DB> | null = null;
 let sqlite: Database | null = null;

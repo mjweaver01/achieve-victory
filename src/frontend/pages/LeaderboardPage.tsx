@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Layout } from '../components/Layout';
 import type { GameType, LeaderboardResponse } from '../../types/api';
+import { toEpochMs } from '../../utils/epoch';
 import { formatDuration } from '../utils/time';
 
-function formatDate(ts: number): string {
-  return new Date(ts).toLocaleDateString();
+function formatDate(ts: number | string): string {
+  const ms = toEpochMs(ts);
+  if (ms <= 0) return '—';
+  return new Date(ms).toLocaleDateString();
 }
 
 function gameLabel(game: GameType): string {
@@ -65,9 +68,14 @@ export function LeaderboardPage() {
     .sort((a, b) => {
       const factor = sortOrder === 'asc' ? 1 : -1;
       if (sortBy === 'time') {
-        return factor * (a.completionTimeMs - b.completionTimeMs);
+        return (
+          factor *
+          (toEpochMs(a.completionTimeMs) - toEpochMs(b.completionTimeMs))
+        );
       }
-      if (sortBy === 'date') return factor * (a.completedAt - b.completedAt);
+      if (sortBy === 'date') {
+        return factor * (toEpochMs(a.completedAt) - toEpochMs(b.completedAt));
+      }
       if (sortBy === 'player') return factor * a.email.localeCompare(b.email);
       return factor * a.game.localeCompare(b.game);
     });

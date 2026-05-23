@@ -2,6 +2,7 @@ import { sql } from 'kysely';
 import { codesByDayExpr, getDb } from '../db/index';
 import type { AdminStatsResponse } from '../types/api';
 import { isAdminAuthorized } from '../utils/adminAuth';
+import { toEpochMs } from '../utils/epoch';
 import { error, json } from '../utils/http';
 
 export async function getAdmin(req: Request): Promise<Response> {
@@ -85,9 +86,9 @@ export async function getAdmin(req: Request): Promise<Response> {
     })),
     topCompletions: topSessions.map(row => ({
       email: row.email,
-      completionTimeMs: row.completion_time_ms!,
+      completionTimeMs: toEpochMs(row.completion_time_ms),
       code: row.code,
-      completedAt: row.redeemed_at!,
+      completedAt: toEpochMs(row.redeemed_at),
     })),
     dropOffCount,
     blockedAttempts,

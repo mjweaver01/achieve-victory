@@ -1,6 +1,7 @@
 import { getDb } from '../db/index';
 import type { GameType, LeaderboardResponse } from '../types/api';
 import { anonymizeEmail } from '../utils/anonymize';
+import { toEpochMs } from '../utils/epoch';
 import { json } from '../utils/http';
 
 const LIMIT = 50;
@@ -39,8 +40,8 @@ export async function getLeaderboard(req: Request): Promise<Response> {
       rank: index + 1,
       email: anonymizeEmail(row.email),
       game: normalizeGame(row.game),
-      completionTimeMs: row.completion_time_ms!,
-      completedAt: row.redeemed_at!,
+      completionTimeMs: toEpochMs(row.completion_time_ms),
+      completedAt: toEpochMs(row.redeemed_at),
     })),
   };
 
