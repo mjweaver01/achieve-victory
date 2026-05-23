@@ -37,13 +37,33 @@ function cardColor(card: Card): 'red' | 'black' {
   return suit === 'H' || suit === 'D' ? 'red' : 'black';
 }
 
-function formatCard(card: Card): string {
-  const rank = card[0] === 'T' ? '10' : card[0];
-  const suit = suitOf(card);
-  if (suit === 'H') return `${rank}♥`;
-  if (suit === 'D') return `${rank}♦`;
-  if (suit === 'C') return `${rank}♣`;
-  return `${rank}♠`;
+function rankLabel(card: Card): string {
+  return card[0] === 'T' ? '10' : (card[0] ?? '');
+}
+
+function suitGlyph(suit: Suit): string {
+  if (suit === 'H') return '♥';
+  if (suit === 'D') return '♦';
+  if (suit === 'C') return '♣';
+  return '♠';
+}
+
+function CardFace({ card }: { card: Card }) {
+  const rank = rankLabel(card);
+  const suit = suitGlyph(suitOf(card));
+  return (
+    <span className="solitaire-card-face" aria-hidden="true">
+      <span className="solitaire-corner top-left">
+        <span className="solitaire-corner-rank">{rank}</span>
+        <span className="solitaire-corner-suit">{suit}</span>
+      </span>
+      <span className="solitaire-card-pip">{suit}</span>
+      <span className="solitaire-corner bottom-right">
+        <span className="solitaire-corner-rank">{rank}</span>
+        <span className="solitaire-corner-suit">{suit}</span>
+      </span>
+    </span>
+  );
 }
 
 function makeDeck(): Card[] {
@@ -320,24 +340,33 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
 
   return (
     <div className="solitaire-wrap">
-      <p className="timer">Time: {formatDuration(elapsedMs)}</p>
-      {statusText ? <p className="timer">{statusText}</p> : null}
-      <p className="solitaire-meta">
-        Moves: {moves} | Stock: {stock.length}
-      </p>
+      <div className="solitaire-status">
+        <p className="timer">{formatDuration(elapsedMs)}</p>
+        <span className="solitaire-status-sep">|</span>
+        <span>Moves {moves}</span>
+        <span className="solitaire-status-sep">|</span>
+        <span>Stock {stock.length}</span>
+        {statusText ? <span className="solitaire-status-note">{statusText}</span> : null}
+      </div>
 
       <div className="solitaire-top">
         <button
           type="button"
-          className={`solitaire-card solitaire-stock${stock.length === 0 ? ' empty' : ''}`}
+          className={`solitaire-card solitaire-stock${stock.length === 0 ? ' empty' : ''}${stock.length > 0 ? ' down' : ''}`}
           onClick={onDraw}
+          aria-label={stock.length > 0 ? 'Draw card' : 'Reset stock'}
         >
-          {stock.length > 0 ? <span className="solitaire-back">BACK</span> : <span>Reset</span>}
+          {stock.length === 0 ? (
+            <span>
+              <span className="solitaire-stock-pip">↻</span>
+              <span className="solitaire-stock-label">Reset</span>
+            </span>
+          ) : null}
         </button>
 
         <button
           type="button"
-          className={`solitaire-card solitaire-waste${selected?.type === 'waste' ? ' selected' : ''}${waste.length === 0 ? ' empty' : ''}`}
+          className={`solitaire-card solitaire-waste${selected?.type === 'waste' ? ' selected' : ''}${waste.length === 0 ? ' empty' : ''}${waste.length > 0 ? ` ${cardColor(waste.at(-1)!)}` : ''}`}
           onClick={() => {
             if (waste.length === 0) return;
             setSelected(prev => (prev?.type === 'waste' ? null : { type: 'waste' }));
@@ -349,9 +378,7 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
           }}
         >
           {waste.length > 0 ? (
-            <span className={`solitaire-card-label ${cardColor(waste.at(-1)!)}`}>
-              {formatCard(waste.at(-1)!)}
-            </span>
+            <CardFace card={waste.at(-1)!} />
           ) : (
             <span className="solitaire-empty-label">Waste</span>
           )}
@@ -362,11 +389,12 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
             const top = foundations[suit].at(-1);
             const isSelected =
               selected?.type === 'foundation' && selected.suit === suit;
+            const colorClass = top ? cardColor(top) : suit === 'H' || suit === 'D' ? 'red' : 'black';
             return (
               <button
                 key={suit}
                 type="button"
-                className={`solitaire-card foundation${isSelected ? ' selected' : ''}${top ? '' : ' empty'}`}
+                className={`solitaire-card foundation${isSelected ? ' selected' : ''}${top ? '' : ' empty'} ${colorClass}`}
                 onClick={() => {
                   if (selected) {
                     void tryMoveSelectionToFoundation(suit);
@@ -375,13 +403,14 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
                   if (!top) return;
                   setSelected({ type: 'foundation', suit });
                 }}
+                aria-label={`Foundation ${suit}`}
               >
                 {top ? (
-                  <span className={`solitaire-card-label ${cardColor(top)}`}>
-                    {formatCard(top)}
-                  </span>
+                  <CardFace card={top} />
                 ) : (
-                  <span className="solitaire-empty-label">{suit}</span>
+                  <span className={`solitaire-foundation-ghost${colorClass === 'red' ? ' red' : ''}`}>
+                    {suitGlyph(suit)}
+                  </span>
                 )}
               </button>
             );
@@ -393,9 +422,7 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
         {tableau.map((pile, pileIndex) => (
           <div key={pileIndex} className="solitaire-column">
             {pile.down.map((_, idx) => (
-              <div key={`down-${pileIndex}-${idx}`} className="solitaire-card down">
-                <span className="solitaire-back">BACK</span>
-              </div>
+              <div key={`down-${pileIndex}-${idx}`} className="solitaire-card down" />
             ))}
             {pile.up.map((card, upIndex) => {
               const isSelected =
@@ -406,7 +433,7 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
                 <button
                   key={`up-${pileIndex}-${card}-${upIndex}`}
                   type="button"
-                  className={`solitaire-card tableau${isSelected ? ' selected' : ''}`}
+                  className={`solitaire-card tableau ${cardColor(card)}${isSelected ? ' selected' : ''}`}
                   onClick={() => {
                     if (selected) {
                       void tryMoveSelectionToTableau(pileIndex);
@@ -423,9 +450,7 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
                     void tryMoveSelectionToFoundation(suitOf(card));
                   }}
                 >
-                  <span className={`solitaire-card-label ${cardColor(card)}`}>
-                    {formatCard(card)}
-                  </span>
+                  <CardFace card={card} />
                 </button>
               );
             })}
@@ -438,7 +463,7 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
                   void tryMoveSelectionToTableau(pileIndex);
                 }}
               >
-                <span className="solitaire-empty-label">Empty</span>
+                <span className="solitaire-empty-label">K</span>
               </button>
             ) : null}
           </div>

@@ -5,6 +5,30 @@ import { formatDuration } from '../utils/time';
 
 const SIZE = 4;
 const CELL_COUNT = SIZE * SIZE;
+const BEST_KEY = 'madeon-game:2048:best';
+
+function tileClass(value: number): string {
+  if (value === 0) return 'empty';
+  if (value > 2048) return 'filled vMax';
+  return `filled v${value}`;
+}
+
+function loadBest(): number {
+  try {
+    const raw = localStorage.getItem(BEST_KEY);
+    return raw ? Math.max(0, Number.parseInt(raw, 10) || 0) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function saveBest(value: number): void {
+  try {
+    localStorage.setItem(BEST_KEY, String(value));
+  } catch {
+    /* ignore */
+  }
+}
 
 type Direction = 'up' | 'down' | 'left' | 'right';
 type Outcome = Game2048Progress['outcome'];
@@ -115,7 +139,15 @@ export function Game2048({ saved, onWin, onProgressChange }: Props) {
   const [outcome, setOutcome] = useState<Outcome>(saved?.outcome ?? 'playing');
   const [statusText, setStatusText] = useState(saved?.statusText ?? '');
   const [frozenElapsedMs, setFrozenElapsedMs] = useState(0);
+  const [best, setBest] = useState<number>(() => loadBest());
   const wonRef = useRef(false);
+
+  useEffect(() => {
+    if (score > best) {
+      setBest(score);
+      saveBest(score);
+    }
+  }, [score, best]);
 
   const elapsedMs = useElapsedTimer({
     startedAt,
@@ -194,40 +226,65 @@ export function Game2048({ saved, onWin, onProgressChange }: Props) {
 
   return (
     <div className="game2048-wrap">
-      <p className="timer">Time: {formatDuration(elapsedMs)}</p>
-      <p className="game2048-meta">Score: {score}</p>
+      <div className="game2048-header">
+        <div className="game2048-stat">
+          <span className="game2048-stat-label">Time</span>
+          <span className="game2048-stat-value">{formatDuration(elapsedMs)}</span>
+        </div>
+        <div className="game2048-stat">
+          <span className="game2048-stat-label">Score</span>
+          <span className="game2048-stat-value">{score}</span>
+        </div>
+        <div className="game2048-stat best">
+          <span className="game2048-stat-label">Best</span>
+          <span className="game2048-stat-value">{best}</span>
+        </div>
+      </div>
+
       {statusText ? <p className="timer">{statusText}</p> : null}
-      <div className="game2048-grid">
+
+      <div className="game2048-grid" role="grid" aria-label="2048 board">
         {board.map((value, idx) => (
-          <div key={idx} className={`game2048-cell${value === 0 ? ' empty' : ''}`}>
+          <div key={idx} className={`game2048-cell ${tileClass(value)}`} role="gridcell">
             {value === 0 ? '' : value}
           </div>
         ))}
       </div>
+
+      <p className="game2048-hint">Use arrow keys or buttons</p>
+
       <div className="game2048-controls">
-        <button type="button" className="secondary" onClick={() => applyMove('up')}>
-          Up
+        <button
+          type="button"
+          className="secondary game2048-arrow up"
+          onClick={() => applyMove('up')}
+          aria-label="Move up"
+        >
+          ↑
         </button>
         <button
           type="button"
-          className="secondary"
+          className="secondary game2048-arrow left"
           onClick={() => applyMove('left')}
+          aria-label="Move left"
         >
-          Left
+          ←
         </button>
         <button
           type="button"
-          className="secondary"
+          className="secondary game2048-arrow down"
           onClick={() => applyMove('down')}
+          aria-label="Move down"
         >
-          Down
+          ↓
         </button>
         <button
           type="button"
-          className="secondary"
+          className="secondary game2048-arrow right"
           onClick={() => applyMove('right')}
+          aria-label="Move right"
         >
-          Right
+          →
         </button>
       </div>
     </div>
