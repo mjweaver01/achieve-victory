@@ -23,6 +23,7 @@ export function ChessPage() {
     message,
     code,
     offerText,
+    completionTimeMs,
     redeem,
     resetRedeem,
     devComplete,
@@ -93,6 +94,7 @@ export function ChessPage() {
             message={message}
             code={code}
             offerText={offerText}
+            timeMs={completionTimeMs}
             footer={
               <div className="puzzle-complete-footer">
                 {status === 'done' && code ? (

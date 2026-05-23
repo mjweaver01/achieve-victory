@@ -16,6 +16,7 @@ function initialRedeem(sessionId: string | undefined): RedeemProgress {
       message: '',
       code: undefined,
       offerText: undefined,
+      completionTimeMs: undefined,
     };
   }
   const saved = loadProgress(sessionId)?.redeem;
@@ -25,6 +26,7 @@ function initialRedeem(sessionId: string | undefined): RedeemProgress {
       message: '',
       code: undefined,
       offerText: undefined,
+      completionTimeMs: undefined,
     }
   );
 }
@@ -44,6 +46,9 @@ export function useRedeemSession() {
   const [offerText, setOfferText] = useState(
     () => initialRedeem(sessionId).offerText ?? ''
   );
+  const [completionTimeMs, setCompletionTimeMs] = useState<number | undefined>(
+    () => initialRedeem(sessionId).completionTimeMs
+  );
   const [devSkipBusy, setDevSkipBusy] = useState(false);
 
   useEffect(() => {
@@ -53,8 +58,9 @@ export function useRedeemSession() {
       message,
       code: code || undefined,
       offerText: offerText || undefined,
+      completionTimeMs,
     });
-  }, [sessionId, status, message, code, offerText]);
+  }, [sessionId, status, message, code, offerText, completionTimeMs]);
 
   const redeem = useCallback(
     async (completionTimeMs: number, score?: number) => {
@@ -68,6 +74,7 @@ export function useRedeemSession() {
       setMessage('');
       setCode('');
       setOfferText('');
+      setCompletionTimeMs(undefined);
       try {
         const res = await fetch('/api/complete', {
           method: 'POST',
@@ -97,6 +104,7 @@ export function useRedeemSession() {
         setStatus('done');
         setCode(data.code ?? '');
         setOfferText(data.offerText ?? '');
+        setCompletionTimeMs(completionTimeMs);
         setMessage('You did it! Your code:');
       } catch {
         setStatus('error');
@@ -111,6 +119,7 @@ export function useRedeemSession() {
     setMessage('');
     setCode('');
     setOfferText('');
+    setCompletionTimeMs(undefined);
   }, []);
 
   const devComplete = useCallback(
@@ -123,6 +132,7 @@ export function useRedeemSession() {
       setMessage('');
       setCode('');
       setOfferText('');
+      setCompletionTimeMs(undefined);
       try {
         const res = await fetch('/api/dev/complete', {
           method: 'POST',
@@ -152,6 +162,7 @@ export function useRedeemSession() {
         setStatus('done');
         setCode(data.code ?? '');
         setOfferText(data.offerText ?? '');
+        setCompletionTimeMs(completionTimeMs);
         setMessage('You did it! Your code:');
       } catch {
         setStatus('error');
@@ -168,6 +179,7 @@ export function useRedeemSession() {
     message,
     code,
     offerText,
+    completionTimeMs,
     redeem,
     resetRedeem,
     devComplete,

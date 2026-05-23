@@ -9,6 +9,8 @@ import {
 import { useElapsedTimer } from '../hooks/useElapsedTimer';
 import type { SolitaireProgress } from '../utils/gameProgress';
 import { formatDuration } from '../utils/time';
+import { DevSkipButton } from './DevSkipButton';
+import { StartOverButton } from './StartOverButton';
 
 const SUITS = ['S', 'H', 'D', 'C'] as const;
 const RANKS = [
@@ -43,6 +45,9 @@ type Props = {
   saved?: SolitaireProgress;
   onWin: (elapsedMs: number, score?: number) => void;
   onProgressChange: (progress: SolitaireProgress) => void;
+  onStartOver?: () => void;
+  onDevSkip?: () => void;
+  devSkipBusy?: boolean;
 };
 
 function rankValue(card: Card): number {
@@ -218,7 +223,14 @@ function createSnapshot(
   };
 }
 
-export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
+export function SolitaireMatch({
+  saved,
+  onWin,
+  onProgressChange,
+  onStartOver,
+  onDevSkip,
+  devSkipBusy = false,
+}: Props) {
   const initial = useMemo(() => createInitialGame(), []);
   const base = isValidSaved(saved)
     ? saved!
@@ -625,10 +637,10 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
         ) : null}
       </div>
 
-      <div className="solitaire-history">
+      <div className="solitaire-toolbar">
         <button
           type="button"
-          className="secondary solitaire-history-btn"
+          className="secondary solitaire-toolbar-btn"
           onClick={undo}
           disabled={!canUndo}
           aria-label="Undo"
@@ -637,13 +649,19 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
         </button>
         <button
           type="button"
-          className="secondary solitaire-history-btn"
+          className="secondary solitaire-toolbar-btn"
           onClick={redo}
           disabled={!canRedo}
           aria-label="Redo"
         >
           Redo
         </button>
+        {onStartOver ? (
+          <StartOverButton onClick={onStartOver} />
+        ) : null}
+        {onDevSkip ? (
+          <DevSkipButton onClick={onDevSkip} disabled={devSkipBusy} />
+        ) : null}
       </div>
 
       <div className="solitaire-top">

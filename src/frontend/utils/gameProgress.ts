@@ -6,6 +6,7 @@ export type RedeemProgress = {
   message: string;
   code?: string;
   offerText?: string;
+  completionTimeMs?: number;
 };
 
 export type PuzzleProgress = {
@@ -108,6 +109,7 @@ export function clearGameState(sessionId: string, game: GameType): void {
     message: '',
     code: undefined,
     offerText: undefined,
+    completionTimeMs: undefined,
   };
   write(data);
 }

@@ -23,6 +23,7 @@ export function Game2048Page() {
     message,
     code,
     offerText,
+    completionTimeMs,
     redeem,
     resetRedeem,
     devComplete,
@@ -93,6 +94,7 @@ export function Game2048Page() {
             message={message}
             code={code}
             offerText={offerText}
+            timeMs={completionTimeMs}
             footer={
               <div className="puzzle-complete-footer">
                 {status === 'done' && code ? (

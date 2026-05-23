@@ -23,6 +23,7 @@ export function PuzzlePage() {
     message,
     code,
     offerText,
+    completionTimeMs,
     redeem,
     resetRedeem,
     devComplete,
@@ -97,7 +98,7 @@ export function PuzzlePage() {
             message={message}
             code={code}
             offerText={offerText}
-            timeMs={savedPuzzle?.completionTimeMs}
+            timeMs={completionTimeMs}
             footer={
               <div className="puzzle-complete-footer">
                 {status === 'done' && code ? (

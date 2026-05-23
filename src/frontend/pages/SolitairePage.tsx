@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { DevSkipButton } from '../components/DevSkipButton';
 import { Layout } from '../components/Layout';
 import { PuzzleComplete } from '../components/PuzzleComplete';
 import { PrintDiscountCodeButton } from '../components/PrintDiscountCodeButton';
@@ -23,6 +22,7 @@ export function SolitairePage() {
     message,
     code,
     offerText,
+    completionTimeMs,
     redeem,
     resetRedeem,
     devComplete,
@@ -74,18 +74,16 @@ export function SolitairePage() {
               saved={savedSolitaire}
               onWin={(ms, score) => void redeem(ms, score)}
               onProgressChange={handleProgress}
-            />
-            <DevSkipButton
-              disabled={devSkipBusy}
-              onClick={() => {
+              onStartOver={handleStartOver}
+              onDevSkip={() => {
                 const ms =
                   savedSolitaire?.startedAt != null
                     ? Math.max(1, Date.now() - savedSolitaire.startedAt)
                     : 1000;
                 void devComplete(ms, savedSolitaire?.moves ?? 30);
               }}
+              devSkipBusy={devSkipBusy}
             />
-            <StartOverButton onClick={handleStartOver} />
           </>
         ) : (
           <PuzzleComplete
@@ -93,6 +91,7 @@ export function SolitairePage() {
             message={message}
             code={code}
             offerText={offerText}
+            timeMs={completionTimeMs}
             footer={
               <div className="puzzle-complete-footer">
                 {status === 'done' && code ? (
