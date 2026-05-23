@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useElapsedTimer } from '../hooks/useElapsedTimer';
 import type { PuzzleProgress } from '../utils/gameProgress';
 import {
   applyPuzzleMove,
@@ -17,12 +18,6 @@ type Props = {
   onProgressChange: (progress: PuzzleProgress) => void;
 };
 
-function elapsedNow(startedAt: number | null, frozenMs: number, done: boolean) {
-  if (done) return frozenMs;
-  if (!startedAt) return 0;
-  return Date.now() - startedAt;
-}
-
 export function SlidingPuzzle({
   saved,
   shouldResumeComplete = false,
@@ -37,7 +32,7 @@ export function SlidingPuzzle({
   const [startedAt, setStartedAt] = useState<number | null>(
     saved?.startedAt ?? null
   );
-  const [elapsedMs, setElapsedMs] = useState(
+  const [frozenElapsedMs, setFrozenElapsedMs] = useState(
     () => (Number.isFinite(saved?.elapsedMs) ? saved!.elapsedMs : 0)
   );
   const [done, setDone] = useState(saved?.done ?? false);
@@ -49,13 +44,11 @@ export function SlidingPuzzle({
       : undefined
   );
 
-  useEffect(() => {
-    if (!startedAt || done) return;
-    const id = window.setInterval(() => {
-      setElapsedMs(Date.now() - startedAt);
-    }, 100);
-    return () => clearInterval(id);
-  }, [startedAt, done]);
+  const elapsedMs = useElapsedTimer({
+    startedAt,
+    frozenMs: frozenElapsedMs,
+    isStopped: done,
+  });
 
   useEffect(() => {
     onProgressChange({
@@ -73,7 +66,7 @@ export function SlidingPuzzle({
     if (!saved?.done || ms == null || !Number.isFinite(ms)) return;
     completedRef.current = true;
     setDone(true);
-    setElapsedMs(ms);
+    setFrozenElapsedMs(ms);
     onComplete(ms);
   }, [
     shouldResumeComplete,
@@ -97,7 +90,7 @@ export function SlidingPuzzle({
         if (isPuzzleSolved(next)) {
           const ms = Math.max(1, Date.now() - start);
           setDone(true);
-          setElapsedMs(ms);
+          setFrozenElapsedMs(ms);
           setCompletionTimeMs(ms);
           onProgressChange({
             board: next,
@@ -115,14 +108,12 @@ export function SlidingPuzzle({
     [done, onComplete, onProgressChange, startedAt]
   );
 
-  const timerMs = elapsedNow(startedAt, elapsedMs, done);
-
   if (done) return null;
 
   return (
     <div>
       <p className="timer">
-        Time: {formatDuration(timerMs)}
+        Time: {formatDuration(elapsedMs)}
       </p>
       <div
         className="puzzle-grid"

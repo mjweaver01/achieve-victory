@@ -1,7 +1,9 @@
 import { Chess } from 'chess.js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Chessboard } from 'react-chessboard';
+import { useElapsedTimer } from '../hooks/useElapsedTimer';
 import type { ChessProgress } from '../utils/gameProgress';
+import { formatDuration } from '../utils/time';
 
 type Outcome = ChessProgress['outcome'];
 
@@ -41,37 +43,49 @@ function loadGame(saved?: ChessProgress): Chess {
 
 export function ChessMatch({ saved, onWin, onProgressChange }: Props) {
   const gameRef = useRef(loadGame(saved));
-  const startedAtRef = useRef<number | null>(saved?.startedAt ?? null);
+  const [startedAt, setStartedAt] = useState<number | null>(
+    saved?.startedAt ?? null
+  );
+  const [frozenElapsedMs, setFrozenElapsedMs] = useState(0);
   const [fen, setFen] = useState(gameRef.current.fen());
   const [outcome, setOutcome] = useState<Outcome>(saved?.outcome ?? 'playing');
   const [statusText, setStatusText] = useState(
     saved?.statusText ?? DEFAULT_STATUS
   );
+  const elapsedMs = useElapsedTimer({
+    startedAt,
+    frozenMs: frozenElapsedMs,
+    isStopped: outcome !== 'playing',
+  });
 
   const persist = useCallback(
     (patch: Partial<ChessProgress>) => {
       onProgressChange({
         fen: gameRef.current.fen(),
-        startedAt: startedAtRef.current,
+        startedAt,
         outcome,
         statusText,
         ...patch,
       });
     },
-    [onProgressChange, outcome, statusText]
+    [onProgressChange, startedAt, outcome, statusText]
   );
 
   useEffect(() => {
     persist({});
   }, [fen, outcome, statusText, persist]);
 
-  const finishWin = useCallback(() => {
-    const start = startedAtRef.current ?? Date.now();
-    const elapsed = Math.max(1, Date.now() - start);
-    setOutcome('playing');
-    setStatusText('Victory! Sending your code…');
-    onWin(elapsed);
-  }, [onWin]);
+  const finishWin = useCallback(
+    (startAt: number | null) => {
+      const start = startAt ?? Date.now();
+      const elapsed = Math.max(1, Date.now() - start);
+      setFrozenElapsedMs(elapsed);
+      setOutcome('playing');
+      setStatusText('Victory! Sending your code…');
+      onWin(elapsed);
+    },
+    [onWin]
+  );
 
   const onPieceDrop = useCallback(
     ({
@@ -88,7 +102,11 @@ export function ChessMatch({ saved, onWin, onProgressChange }: Props) {
       const game = gameRef.current;
       if (game.turn() !== 'w' || piece.pieceType[0] !== 'w') return false;
 
-      if (!startedAtRef.current) startedAtRef.current = Date.now();
+      let start = startedAt;
+      if (!start) {
+        start = Date.now();
+        setStartedAt(start);
+      }
 
       let move;
       try {
@@ -106,21 +124,35 @@ export function ChessMatch({ saved, onWin, onProgressChange }: Props) {
       setFen(nextFen);
 
       if (playerWon(game)) {
-        finishWin();
+        finishWin(start);
         return true;
       }
       if (playerLost(game)) {
+        const elapsed = start ? Math.max(1, Date.now() - start) : 0;
         const text = 'Checkmate! The computer wins. Try again.';
+        setFrozenElapsedMs(elapsed);
         setOutcome('lost');
         setStatusText(text);
-        persist({ fen: nextFen, outcome: 'lost', statusText: text });
+        persist({
+          fen: nextFen,
+          startedAt: start,
+          outcome: 'lost',
+          statusText: text,
+        });
         return true;
       }
       if (game.isDraw()) {
+        const elapsed = start ? Math.max(1, Date.now() - start) : 0;
         const text = 'Draw. Start over and go for checkmate.';
+        setFrozenElapsedMs(elapsed);
         setOutcome('draw');
         setStatusText(text);
-        persist({ fen: nextFen, outcome: 'draw', statusText: text });
+        persist({
+          fen: nextFen,
+          startedAt: start,
+          outcome: 'draw',
+          statusText: text,
+        });
         return true;
       }
 
@@ -129,25 +161,39 @@ export function ChessMatch({ saved, onWin, onProgressChange }: Props) {
       setFen(afterBotFen);
 
       if (playerWon(game)) {
-        finishWin();
+        finishWin(start);
         return true;
       }
       if (playerLost(game)) {
+        const elapsed = start ? Math.max(1, Date.now() - start) : 0;
         const text = 'Checkmate! The computer wins. Try again.';
+        setFrozenElapsedMs(elapsed);
         setOutcome('lost');
         setStatusText(text);
-        persist({ fen: afterBotFen, outcome: 'lost', statusText: text });
+        persist({
+          fen: afterBotFen,
+          startedAt: start,
+          outcome: 'lost',
+          statusText: text,
+        });
         return true;
       }
       if (game.isDraw()) {
+        const elapsed = start ? Math.max(1, Date.now() - start) : 0;
         const text = 'Draw. Start over and go for checkmate.';
+        setFrozenElapsedMs(elapsed);
         setOutcome('draw');
         setStatusText(text);
-        persist({ fen: afterBotFen, outcome: 'draw', statusText: text });
+        persist({
+          fen: afterBotFen,
+          startedAt: start,
+          outcome: 'draw',
+          statusText: text,
+        });
         return true;
       }
 
-      persist({ fen: afterBotFen, outcome: 'playing' });
+      persist({ fen: afterBotFen, startedAt: start, outcome: 'playing' });
       return true;
     },
     [finishWin, outcome, persist]
@@ -176,6 +222,7 @@ export function ChessMatch({ saved, onWin, onProgressChange }: Props) {
 
   return (
     <div className="chess-wrap">
+      <p className="timer">Time: {formatDuration(elapsedMs)}</p>
       {statusText && <p className="timer">{statusText}</p>}
       <Chessboard options={boardOptions} />
     </div>
