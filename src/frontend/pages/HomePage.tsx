@@ -23,7 +23,7 @@ export function HomePage() {
       const res = await fetch('/api/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, game }),
       });
       const data = (await res.json()) as StartResponse & { error?: string };
 
@@ -83,6 +83,8 @@ export function HomePage() {
                 src="/images/MINIDOLLS_L.png"
                 alt=""
                 className="game-picker-icon"
+                width={1000}
+                height={1000}
               />
               <span className="game-picker-title">Image puzzle</span>
               <span className="game-picker-desc">
@@ -101,6 +103,8 @@ export function HomePage() {
                 src="/images/MINIDOLLS_R.png"
                 alt=""
                 className="game-picker-icon"
+                width={1000}
+                height={1000}
               />
               <span className="game-picker-title">Chess</span>
               <span className="game-picker-desc">

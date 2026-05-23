@@ -172,7 +172,8 @@ h2 {
 }
 
 input[type='email'],
-input[type='password'] {
+input[type='password'],
+select {
   width: 100%;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
@@ -184,7 +185,8 @@ input[type='password'] {
 }
 
 input[type='email']:focus,
-input[type='password']:focus {
+input[type='password']:focus,
+select:focus {
   outline: none;
   border-color: var(--accent);
 }
@@ -416,6 +418,41 @@ th {
   margin-top: 1.25rem;
 }
 
+.table-sort-button {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.table-sort-button:hover {
+  color: var(--text);
+}
+
+.leaderboard-filter-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  width: fit-content;
+  margin: 0 auto 1rem 0;
+  text-align: left;
+}
+
+.leaderboard-filter-row .field-label {
+  margin: 0;
+}
+
+.leaderboard-filter-row select {
+  width: auto;
+  min-width: 9rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.85rem;
+}
+
 .game-picker {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -454,6 +491,7 @@ th {
   display: block;
   width: 200px;
   max-width: 100%;
+  aspect-ratio: 1;
   height: auto;
   margin: 0 auto;
   object-fit: contain;

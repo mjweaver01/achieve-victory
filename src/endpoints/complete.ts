@@ -9,6 +9,10 @@ import type { CompleteRequest, CompleteResponse } from '../types/api';
 import { validateEmail } from '../utils/emailValidation';
 import { error, json } from '../utils/http';
 
+function normalizeGame(game: CompleteRequest['game']): 'puzzle' | 'chess' {
+  return game === 'chess' ? 'chess' : 'puzzle';
+}
+
 export async function redeemSession(
   body: CompleteRequest
 ): Promise<Response> {
@@ -66,6 +70,7 @@ export async function redeemSession(
   await db
     .updateTable('sessions')
     .set({
+      game: normalizeGame(body.game),
       redeemed_at: now,
       completion_time_ms: completionTimeMs,
       score: score ?? null,

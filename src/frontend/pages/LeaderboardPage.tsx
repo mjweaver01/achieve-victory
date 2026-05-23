@@ -1,15 +1,35 @@
 import { useEffect, useState } from 'react';
 import { Layout } from '../components/Layout';
-import type { LeaderboardResponse } from '../../types/api';
+import type { GameType, LeaderboardResponse } from '../../types/api';
 import { formatDuration } from '../utils/time';
 
 function formatDate(ts: number): string {
   return new Date(ts).toLocaleDateString();
 }
 
+type SortBy = 'time' | 'date' | 'player' | 'game';
+type SortOrder = 'asc' | 'desc';
+
 export function LeaderboardPage() {
   const [entries, setEntries] = useState<LeaderboardResponse['entries']>([]);
   const [error, setError] = useState('');
+  const [gameFilter, setGameFilter] = useState<'all' | GameType>('all');
+  const [sortBy, setSortBy] = useState<SortBy>('time');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+
+  function toggleSort(nextSortBy: SortBy) {
+    if (sortBy === nextSortBy) {
+      setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
+      return;
+    }
+    setSortBy(nextSortBy);
+    setSortOrder(nextSortBy === 'time' ? 'asc' : 'desc');
+  }
+
+  function sortMarker(key: SortBy) {
+    if (sortBy !== key) return '';
+    return sortOrder === 'asc' ? ' ↑' : ' ↓';
+  }
 
   async function load() {
     try {
@@ -33,32 +53,95 @@ export function LeaderboardPage() {
     return () => clearInterval(id);
   }, []);
 
+  const visibleEntries = [...entries]
+    .filter(row => gameFilter === 'all' || row.game === gameFilter)
+    .sort((a, b) => {
+      const factor = sortOrder === 'asc' ? 1 : -1;
+      if (sortBy === 'time') {
+        return factor * (a.completionTimeMs - b.completionTimeMs);
+      }
+      if (sortBy === 'date') return factor * (a.completedAt - b.completedAt);
+      if (sortBy === 'player') return factor * a.email.localeCompare(b.email);
+      return factor * a.game.localeCompare(b.game);
+    });
+
   return (
-    <Layout title="Leaderboard" subtitle="Fastest completions. Refreshes every minute.">
+    <Layout
+      title="Leaderboard"
+      subtitle="Victory board. Refreshes every minute."
+    >
       <div className="card">
         {error ? <p className="error">{error}</p> : null}
+        <div className="leaderboard-filter-row">
+          <label htmlFor="leaderboard-game-filter" className="field-label">
+            Game
+          </label>
+          <select
+            id="leaderboard-game-filter"
+            value={gameFilter}
+            onChange={e => setGameFilter(e.target.value as 'all' | GameType)}
+          >
+            <option value="all">All games</option>
+            <option value="puzzle">Puzzle</option>
+            <option value="chess">Chess</option>
+          </select>
+        </div>
         <table>
           <thead>
             <tr>
               <th>#</th>
-              <th>Player</th>
-              <th>Time</th>
-              <th>Date</th>
+              <th>
+                <button
+                  type="button"
+                  className="table-sort-button"
+                  onClick={() => toggleSort('player')}
+                >
+                  Player{sortMarker('player')}
+                </button>
+              </th>
+              <th>
+                <button
+                  type="button"
+                  className="table-sort-button"
+                  onClick={() => toggleSort('game')}
+                >
+                  Game{sortMarker('game')}
+                </button>
+              </th>
+              <th>
+                <button
+                  type="button"
+                  className="table-sort-button"
+                  onClick={() => toggleSort('time')}
+                >
+                  Time{sortMarker('time')}
+                </button>
+              </th>
+              <th>
+                <button
+                  type="button"
+                  className="table-sort-button"
+                  onClick={() => toggleSort('date')}
+                >
+                  Date{sortMarker('date')}
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody>
-            {entries.map(row => (
-              <tr key={`${row.rank}-${row.email}`}>
-                <td>{row.rank}</td>
+            {visibleEntries.map((row, index) => (
+              <tr key={`${row.rank}-${row.email}-${row.game}`}>
+                <td>{index + 1}</td>
                 <td>{row.email}</td>
+                <td>{row.game === 'chess' ? 'Chess' : 'Puzzle'}</td>
                 <td>{formatDuration(row.completionTimeMs)}</td>
                 <td>{formatDate(row.completedAt)}</td>
               </tr>
             ))}
           </tbody>
         </table>
-        {entries.length === 0 && !error ? (
-          <p className="subtitle">No completions yet — be the first.</p>
+        {visibleEntries.length === 0 && !error ? (
+          <p className="subtitle">No completions yet. Be the first!</p>
         ) : null}
       </div>
     </Layout>

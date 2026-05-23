@@ -77,6 +77,7 @@ export function useRedeemSession() {
           body: JSON.stringify({
             sessionId: current.sessionId,
             email: current.email,
+            game: current.game,
             completionTimeMs,
             score,
           }),
@@ -166,6 +167,7 @@ export function useRedeemSession() {
           body: JSON.stringify({
             sessionId: current.sessionId,
             email: current.email,
+            game: current.game,
             completionTimeMs: Math.max(1, completionTimeMs),
             score,
           }),

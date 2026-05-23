@@ -3,6 +3,7 @@ import type { Insertable, Selectable, Updateable } from 'kysely';
 export interface SessionsTable {
   id: string;
   email: string;
+  game: 'puzzle' | 'chess' | null;
   started_at: number;
   redeemed_at: number | null;
   completion_time_ms: number | null;

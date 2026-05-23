@@ -1,17 +1,19 @@
 import { getDb } from '../db/index';
-import type { StartResponse } from '../types/api';
+import type { GameType, StartRequest, StartResponse } from '../types/api';
 import {
   recordBlockedAttempt,
   validateEmail,
 } from '../utils/emailValidation';
 import { error, json } from '../utils/http';
 
-type StartBody = { email?: string };
+function normalizeGame(game: string | undefined): GameType {
+  return game === 'chess' ? 'chess' : 'puzzle';
+}
 
 export async function postStart(req: Request): Promise<Response> {
-  let body: StartBody;
+  let body: Partial<StartRequest>;
   try {
-    body = (await req.json()) as StartBody;
+    body = (await req.json()) as Partial<StartRequest>;
   } catch {
     return error('Invalid JSON body', 400);
   }
@@ -30,6 +32,7 @@ export async function postStart(req: Request): Promise<Response> {
   }
 
   const { email } = validation;
+  const game = normalizeGame(body.game);
   const db = getDb();
 
   const existingCode = await db
@@ -54,6 +57,7 @@ export async function postStart(req: Request): Promise<Response> {
     .values({
       id: sessionId,
       email,
+      game,
       started_at: startedAt,
       redeemed_at: null,
       completion_time_ms: null,

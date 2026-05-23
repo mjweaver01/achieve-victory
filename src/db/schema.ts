@@ -37,6 +37,16 @@ const postgresBigIntFixes = [
   `ALTER TABLE blocked_attempts ALTER COLUMN attempted_at TYPE BIGINT`,
 ];
 
+function isDuplicateColumnError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  const msg = error.message.toLowerCase();
+  return (
+    msg.includes('duplicate column') ||
+    msg.includes('already exists') ||
+    msg.includes('column "game" of relation "sessions" already exists')
+  );
+}
+
 export async function runMigrations(
   db: Kysely<DB>,
   opts?: { isPostgres?: boolean }
@@ -50,4 +60,18 @@ export async function runMigrations(
       await sql.raw(statement).execute(db);
     }
   }
+
+  // Track the selected game per session for analytics/leaderboard filtering.
+  try {
+    await sql.raw(`ALTER TABLE sessions ADD COLUMN game TEXT`).execute(db);
+  } catch (err) {
+    if (!isDuplicateColumnError(err)) throw err;
+  }
+
+  await sql
+    .raw(
+      `UPDATE sessions SET game = 'puzzle'
+       WHERE game IS NULL`
+    )
+    .execute(db);
 }

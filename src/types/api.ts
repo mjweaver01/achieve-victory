@@ -1,10 +1,18 @@
+export type GameType = 'puzzle' | 'chess';
+
 export type StartResponse =
   | { sessionId: string }
   | { alreadyRedeemed: true; code: string };
 
+export type StartRequest = {
+  email: string;
+  game?: GameType;
+};
+
 export type CompleteRequest = {
   sessionId: string;
   email: string;
+  game?: GameType;
   completionTimeMs: number;
   score?: number;
 };
@@ -25,6 +33,7 @@ export type ResendCodeResponse = { success: true; mock?: boolean };
 export type LeaderboardEntry = {
   rank: number;
   email: string;
+  game: GameType;
   completionTimeMs: number;
   completedAt: number;
 };
