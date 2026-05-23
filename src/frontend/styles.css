@@ -1,32 +1,121 @@
 @font-face {
   font-family: 'Inter';
-  src: url('../../public/fonts/inter_n3.6faba940d2e90c9f1c2e0c5c2750b84af59fecc0.woff2')
-    format('woff2');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
+  src:
+    url('../../public/fonts/inter_n3.6faba940d2e90c9f1c2e0c5c2750b84af59fecc0.woff2')
+      format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src:
+    url('../../public/fonts/inter_n7.02711e6b374660cfc7915d1afc1c204e633421e4.woff2')
+      format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+  src:
+    url('../../public/fonts/inter_i3.6d51b5c1aff0e6286c06ee460a22e95b7c89d160.woff2')
+      format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+  src:
+    url('../../public/fonts/inter_i7.b377bcd4cc0f160622a22d638ae7e2cd9b86ea4c.woff2')
+      format('woff2');
 }
 
 @font-face {
   font-family: 'Barlow Semi Condensed';
-  src: url('../../public/fonts/barlowsemicondensed_n6.0cde432d270780c18d435b6363ee972d9ec6d3e1.woff2')
-    format('woff2');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
+  src:
+    url('../../public/fonts/barlowsemicondensed_n6.0cde432d270780c18d435b6363ee972d9ec6d3e1.woff2')
+      format('woff2');
+}
+
+@font-face {
+  font-family: 'Barlow Semi Condensed';
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src:
+    url('../../public/fonts/barlowsemicondensed_n7.bfd87af72ccd364a04fd3557ee4689706a53c60c.woff2')
+      format('woff2');
+}
+
+@font-face {
+  font-family: 'Barlow Semi Condensed';
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+  src:
+    url('../../public/fonts/barlowsemicondensed_i6.7f45f20865bc47d93d2545f6a7fc1a50a88fd366.woff2')
+      format('woff2');
+}
+
+@font-face {
+  font-family: 'Barlow Semi Condensed';
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+  src:
+    url('../../public/fonts/barlowsemicondensed_i7.e660b4997229ff1acb3382c48d778f280dc2307d.woff2')
+      format('woff2');
 }
 
 :root {
-  --font-body: 'Inter', system-ui, sans-serif;
-  --font-heading: 'Barlow Semi Condensed', system-ui, sans-serif;
-  --bg: #000000;
-  --surface: #111111;
-  --accent: #ed3434;
+  --globalBorderColor: hsl(240 2% 10%);
+  --bgColor: #000000;
+  --color: hsl(0 0% 100%);
+  --primary: hsl(0 0% 100%);
+  --hColor: hsl(0 0% 100%);
+  --linkColor: hsl(0 84% 57%);
+  --linkHover: hsl(0 0% 100%);
+  --buttonBgColor: hsl(0 0% 0%);
+  --buttonBgHover: hsl(0 0% 100%);
+  --buttonColor: hsl(0 0% 100%);
+  --buttonColorHover: hsl(0 0% 0%);
+  --buttonBorderColor: hsl(0 0% 100%);
+  --buttonBorderHover: hsl(0 0% 0%);
+  --boxBgColor: hsl(0 0% 100%);
+  --boxColor: hsl(0 0% 0%);
+  --boxBorderColor: hsl(0 0% 0%);
+  --accentBg: hsl(40 9% 93%);
+  --accentColor: hsl(0 0% 0%);
+  --accentBorderColor: hsl(0 0% 0%);
+
+  --fontFamily: 'Inter', sans-serif;
+  --fontWeight: 300;
+  --fontStyle: normal;
+  --hFontFamily: 'Barlow Semi Condensed', sans-serif;
+  --hWeight: 600;
+  --hStyle: normal;
+
+  --font-body: var(--fontFamily), system-ui, sans-serif;
+  --font-heading: var(--hFontFamily), system-ui, sans-serif;
+  --bg: var(--bgColor);
+  --surface: color-mix(in srgb, var(--bgColor) 86%, var(--color) 14%);
+  --accent: var(--linkColor);
   --accent-hover: #ae2a2a;
-  --text: #ffffff;
-  --muted: #a3a3a3;
-  --border: #2a2a2a;
-  --input-bg: #0a0a0a;
+  --text: var(--color);
+  --muted: color-mix(in srgb, var(--color) 64%, transparent);
+  --border: var(--globalBorderColor);
+  --input-bg: color-mix(in srgb, var(--bgColor) 90%, var(--color) 10%);
   --chess-dark: #1a1a1a;
   --chess-light: #2e2e2e;
 }
@@ -47,13 +136,13 @@ body {
 }
 
 a {
-  color: var(--text);
+  color: var(--linkColor);
   text-decoration: none;
   transition: color 0.15s ease;
 }
 
 a:hover {
-  color: var(--accent-hover);
+  color: var(--linkHover);
 }
 
 .page {
@@ -167,6 +256,14 @@ button.secondary:hover {
   margin-bottom: 0.75rem;
 }
 
+.site-header a {
+  color: var(--text);
+}
+
+.site-header a:hover {
+  color: var(--linkColor);
+}
+
 .site-logo-link {
   display: block;
   width: fit-content;
@@ -202,7 +299,7 @@ button.secondary:hover {
   grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
 }
-  
+
 .reward-code-title {
   margin: 2rem 0 0;
   font-size: 1rem;
@@ -235,6 +332,14 @@ button.secondary:hover {
   font-size: 1.15rem;
 }
 
+.nav a {
+  color: var(--text);
+}
+
+.nav a:hover {
+  color: var(--linkColor);
+}
+
 .puzzle-grid {
   display: grid;
   gap: 4px;
@@ -249,7 +354,9 @@ button.secondary:hover {
   font-size: 1.25rem;
   color: var(--text);
   background: linear-gradient(145deg, #3a3a3a, #1a1a1a);
-  transition: transform 0.1s ease, background 0.15s ease;
+  transition:
+    transform 0.1s ease,
+    background 0.15s ease;
 }
 
 .puzzle-tile:not(.empty):hover {

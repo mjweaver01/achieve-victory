@@ -26,6 +26,9 @@ export function Layout({
       <nav className="nav">
         <Link to="/">Play</Link>
         <Link to="/leaderboard">Leaderboard</Link>
+        <a href="https://madeon.store" target="_blank" rel="noopener noreferrer">
+          Shop
+        </a>
       </nav>
       <h1>{title}</h1>
       {subtitle ? <p className="subtitle">{subtitle}</p> : null}

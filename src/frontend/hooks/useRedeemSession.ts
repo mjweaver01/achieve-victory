@@ -34,8 +34,8 @@ export function useRedeemSession() {
   const session = getStoredSession();
   const sessionId = session?.sessionId;
 
-  const [status, setStatus] = useState<Status>(() =>
-    initialRedeem(sessionId).status
+  const [status, setStatus] = useState<Status>(
+    () => initialRedeem(sessionId).status
   );
   const [message, setMessage] = useState(
     () => initialRedeem(sessionId).message
