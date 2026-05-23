@@ -236,6 +236,9 @@
   --chess-dark: var(--ink);
   --chess-light: var(--gray-750);
   --chess-border: var(--gray-800);
+  --chess-selected: color-mix(in srgb, var(--accent) 35%, transparent);
+  --chess-move-dot: color-mix(in srgb, var(--color) 28%, transparent);
+  --chess-capture-ring: color-mix(in srgb, var(--accent) 55%, transparent);
   --chart-tick: var(--gray-muted);
   --chart-bar: var(--red-chart);
 }

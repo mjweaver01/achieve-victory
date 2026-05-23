@@ -1,6 +1,17 @@
-import { Chess } from 'chess.js';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Chessboard } from 'react-chessboard';
+import { Chess, type Move, type Square } from 'chess.js';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
+import {
+  Chessboard,
+  type PieceHandlerArgs,
+  type SquareHandlerArgs,
+} from 'react-chessboard';
 import { useElapsedTimer } from '../hooks/useElapsedTimer';
 import {
   type UndoRedoActions,
@@ -47,6 +58,38 @@ function loadGame(saved?: ChessProgress): Chess {
   return new Chess();
 }
 
+const MOVE_DOT_STYLE: CSSProperties = {
+  background:
+    'radial-gradient(circle, var(--chess-move-dot) 22%, transparent 22%)',
+};
+
+const CAPTURE_RING_STYLE: CSSProperties = {
+  background:
+    'radial-gradient(circle, transparent 58%, var(--chess-capture-ring) 58%)',
+};
+
+function getMoveSquareStyles(
+  game: Chess,
+  from: Square
+): Record<string, CSSProperties> {
+  let moves: Move[];
+  try {
+    moves = game.moves({ square: from, verbose: true });
+  } catch {
+    return {};
+  }
+
+  const styles: Record<string, CSSProperties> = {
+    [from]: { backgroundColor: 'var(--chess-selected)' },
+  };
+
+  for (const move of moves) {
+    styles[move.to] = move.captured ? CAPTURE_RING_STYLE : MOVE_DOT_STYLE;
+  }
+
+  return styles;
+}
+
 export function ChessMatch({
   saved,
   onWin,
@@ -63,6 +106,7 @@ export function ChessMatch({
   const [statusText, setStatusText] = useState(
     saved?.statusText ?? DEFAULT_STATUS
   );
+  const [moveFrom, setMoveFrom] = useState<Square | null>(null);
   const elapsedMs = useElapsedTimer({
     startedAt,
     frozenMs: frozenElapsedMs,
@@ -113,6 +157,7 @@ export function ChessMatch({
     setOutcome(snapshot.outcome);
     setStatusText(snapshot.statusText);
     setFrozenElapsedMs(snapshot.frozenElapsedMs);
+    setMoveFrom(null);
   }, []);
 
   const historyEnabled =
@@ -141,6 +186,10 @@ export function ChessMatch({
     canRedo,
   ]);
 
+  useEffect(() => {
+    if (outcome !== 'playing') setMoveFrom(null);
+  }, [outcome]);
+
   const finishWin = useCallback(
     (startAt: number | null) => {
       const start = startAt ?? Date.now();
@@ -153,20 +202,12 @@ export function ChessMatch({
     [onWin]
   );
 
-  const onPieceDrop = useCallback(
-    ({
-      sourceSquare,
-      targetSquare,
-      piece,
-    }: {
-      sourceSquare: string;
-      targetSquare: string | null;
-      piece: { pieceType: string };
-    }): boolean => {
-      if (outcome !== 'playing' || !targetSquare) return false;
+  const tryPlayerMove = useCallback(
+    (sourceSquare: string, targetSquare: string): boolean => {
+      if (outcome !== 'playing') return false;
 
       const game = gameRef.current;
-      if (game.turn() !== 'w' || piece.pieceType[0] !== 'w') return false;
+      if (game.turn() !== 'w') return false;
 
       let start = startedAt;
       if (!start) {
@@ -267,25 +308,98 @@ export function ChessMatch({
     [finishWin, outcome, persist, pushHistory, startedAt]
   );
 
+  const onPieceDrop = useCallback(
+    ({
+      sourceSquare,
+      targetSquare,
+      piece,
+    }: {
+      sourceSquare: string;
+      targetSquare: string | null;
+      piece: { pieceType: string };
+    }): boolean => {
+      setMoveFrom(null);
+      if (!targetSquare) return false;
+      if (piece.pieceType[0] !== 'w') return false;
+      return tryPlayerMove(sourceSquare, targetSquare);
+    },
+    [tryPlayerMove]
+  );
+
+  const onSquareClick = useCallback(
+    ({ piece, square }: SquareHandlerArgs) => {
+      if (outcome !== 'playing') return;
+
+      const game = gameRef.current;
+      if (game.turn() !== 'w') return;
+
+      if (moveFrom) {
+        if (moveFrom === square) {
+          setMoveFrom(null);
+          return;
+        }
+
+        const legalTargets = game
+          .moves({ square: moveFrom, verbose: true })
+          .map((move: Move) => move.to);
+        if (legalTargets.includes(square as Square)) {
+          setMoveFrom(null);
+          tryPlayerMove(moveFrom, square);
+          return;
+        }
+      }
+
+      if (piece?.pieceType[0] === 'w') {
+        setMoveFrom(square as Square);
+        return;
+      }
+
+      setMoveFrom(null);
+    },
+    [moveFrom, outcome, tryPlayerMove]
+  );
+
+  const onPieceDrag = useCallback(
+    ({ isSparePiece, piece, square }: PieceHandlerArgs) => {
+      if (outcome !== 'playing' || isSparePiece || !square) return;
+      if (piece.pieceType[0] === 'w' && gameRef.current.turn() === 'w') {
+        setMoveFrom(square as Square);
+      }
+    },
+    [outcome]
+  );
+
+  const squareStyles = useMemo(
+    () =>
+      outcome === 'playing' && moveFrom
+        ? getMoveSquareStyles(gameRef.current, moveFrom)
+        : {},
+    [fen, moveFrom, outcome]
+  );
+
   const boardOptions = useMemo(
     () => ({
       position: fen,
       boardOrientation: 'white' as const,
       allowDragging: outcome === 'playing',
       onPieceDrop,
+      onSquareClick,
+      onPieceDrag,
+      squareStyles,
       canDragPiece: ({ piece }: { piece: { pieceType: string } }) =>
         outcome === 'playing' &&
         gameRef.current.turn() === 'w' &&
         piece.pieceType[0] === 'w',
       darkSquareStyle: { backgroundColor: 'var(--chess-dark)' },
       lightSquareStyle: { backgroundColor: 'var(--chess-light)' },
+      dropSquareStyle: { backgroundColor: 'var(--chess-selected)' },
       boardStyle: {
         borderRadius: '8px',
         border: '1px solid var(--chess-border)',
         boxShadow: 'var(--shadow-chess-board)',
       },
     }),
-    [fen, onPieceDrop, outcome]
+    [fen, onPieceDrop, onSquareClick, onPieceDrag, outcome, squareStyles]
   );
 
   return (
