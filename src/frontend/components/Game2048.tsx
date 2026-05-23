@@ -133,9 +133,13 @@ function hasMoves(board: number[]): boolean {
 }
 
 export function Game2048({ saved, onWin, onProgressChange }: Props) {
-  const [board, setBoard] = useState<number[]>(() => saved?.board ?? createInitialBoard());
+  const [board, setBoard] = useState<number[]>(
+    () => saved?.board ?? createInitialBoard()
+  );
   const [score, setScore] = useState(saved?.score ?? 0);
-  const [startedAt, setStartedAt] = useState<number | null>(saved?.startedAt ?? null);
+  const [startedAt, setStartedAt] = useState<number | null>(
+    saved?.startedAt ?? null
+  );
   const [outcome, setOutcome] = useState<Outcome>(saved?.outcome ?? 'playing');
   const [statusText, setStatusText] = useState(saved?.statusText ?? '');
   const [frozenElapsedMs, setFrozenElapsedMs] = useState(0);
@@ -229,7 +233,9 @@ export function Game2048({ saved, onWin, onProgressChange }: Props) {
       <div className="game2048-header">
         <div className="game2048-stat">
           <span className="game2048-stat-label">Time</span>
-          <span className="game2048-stat-value">{formatDuration(elapsedMs)}</span>
+          <span className="game2048-stat-value">
+            {formatDuration(elapsedMs)}
+          </span>
         </div>
         <div className="game2048-stat">
           <span className="game2048-stat-label">Score</span>
@@ -245,7 +251,11 @@ export function Game2048({ saved, onWin, onProgressChange }: Props) {
 
       <div className="game2048-grid" role="grid" aria-label="2048 board">
         {board.map((value, idx) => (
-          <div key={idx} className={`game2048-cell ${tileClass(value)}`} role="gridcell">
+          <div
+            key={idx}
+            className={`game2048-cell ${tileClass(value)}`}
+            role="gridcell"
+          >
             {value === 0 ? '' : value}
           </div>
         ))}

@@ -4,7 +4,6 @@ import indexPageHtml from './frontend/index.html';
 import { postStart } from './endpoints/start';
 import { postComplete } from './endpoints/complete';
 import { postDevComplete } from './endpoints/devComplete';
-import { postResend } from './endpoints/resend';
 import { getLeaderboard } from './endpoints/leaderboard';
 import { getAdmin } from './endpoints/admin';
 import { initDb } from './db/index';
@@ -55,14 +54,22 @@ function servePublicFile(pathname: string): Response | undefined {
     woff2: 'font/woff2',
     woff: 'font/woff',
   };
-  const contentType =
-    contentTypeMap[ext ?? ''] ?? 'application/octet-stream';
+  const contentType = contentTypeMap[ext ?? ''] ?? 'application/octet-stream';
   const headers: Record<string, string> = { 'Content-Type': contentType };
 
   if (
-    ['svg', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'avif', 'css', 'woff2', 'woff'].includes(
-      ext ?? ''
-    )
+    [
+      'svg',
+      'png',
+      'jpg',
+      'jpeg',
+      'gif',
+      'webp',
+      'avif',
+      'css',
+      'woff2',
+      'woff',
+    ].includes(ext ?? '')
   ) {
     headers['Cache-Control'] = 'public, max-age=31536000, immutable';
   }
@@ -83,6 +90,7 @@ const server = Bun.serve({
     '/play/2048': indexPageHtml,
     '/leaderboard': indexPageHtml,
     '/solve': indexPageHtml,
+    '/print': indexPageHtml,
 
     '/api/start': {
       POST: isProduction ? withRateLimit(postStart) : postStart,
@@ -90,18 +98,15 @@ const server = Bun.serve({
     '/api/complete': {
       POST: isProduction ? withRateLimit(postComplete) : postComplete,
     },
-    '/api/resend': {
-      POST: isProduction ? withRateLimit(postResend) : postResend,
-    },
     '/api/dev/complete': { POST: postDevComplete },
     '/api/leaderboard': { GET: getLeaderboard },
     '/api/admin': { GET: getAdmin },
 
-    '/images/*': (req) => {
+    '/images/*': req => {
       const file = servePublicFile(new URL(req.url).pathname);
       return file ?? new Response('Not Found', { status: 404 });
     },
-    '/fonts/*': (req) => {
+    '/fonts/*': req => {
       const file = servePublicFile(new URL(req.url).pathname);
       return file ?? new Response('Not Found', { status: 404 });
     },

@@ -39,8 +39,7 @@ export function getPuzzleNeighbors(emptyIndex: number): number[] {
 
 export function isPuzzleSolved(board: number[]): boolean {
   return (
-    board.length === PUZZLE_SIZE * PUZZLE_SIZE &&
-    board.every((v, i) => v === i)
+    board.length === PUZZLE_SIZE * PUZZLE_SIZE && board.every((v, i) => v === i)
   );
 }
 

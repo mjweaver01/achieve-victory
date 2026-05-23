@@ -1,9 +1,6 @@
 import { getDb } from '../db/index';
 import type { GameType, StartRequest, StartResponse } from '../types/api';
-import {
-  recordBlockedAttempt,
-  validateEmail,
-} from '../utils/emailValidation';
+import { recordBlockedAttempt, validateEmail } from '../utils/emailValidation';
 import { error, json } from '../utils/http';
 
 function normalizeGame(game: string | undefined): GameType {

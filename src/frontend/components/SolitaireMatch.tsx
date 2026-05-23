@@ -1,10 +1,31 @@
-import { type DragEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  type DragEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useElapsedTimer } from '../hooks/useElapsedTimer';
 import type { SolitaireProgress } from '../utils/gameProgress';
 import { formatDuration } from '../utils/time';
 
 const SUITS = ['S', 'H', 'D', 'C'] as const;
-const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K'] as const;
+const RANKS = [
+  'A',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9',
+  'T',
+  'J',
+  'Q',
+  'K',
+] as const;
 const TABLEAU_COUNT = 7;
 
 type Suit = (typeof SUITS)[number];
@@ -110,7 +131,8 @@ function createInitialGame(): {
 
 function isValidSaved(saved?: SolitaireProgress): boolean {
   if (!saved) return false;
-  if (!Array.isArray(saved.tableau) || saved.tableau.length !== TABLEAU_COUNT) return false;
+  if (!Array.isArray(saved.tableau) || saved.tableau.length !== TABLEAU_COUNT)
+    return false;
   if (!Array.isArray(saved.deck) || !Array.isArray(saved.waste)) return false;
   return Boolean(saved.foundations);
 }
@@ -124,8 +146,7 @@ function tableauCanTake(target: TableauPile, card: Card): boolean {
   const top = target.up[target.up.length - 1];
   if (!top) return rankValue(card) === 13;
   return (
-    cardColor(top) !== cardColor(card) &&
-    rankValue(top) === rankValue(card) + 1
+    cardColor(top) !== cardColor(card) && rankValue(top) === rankValue(card) + 1
   );
 }
 
@@ -176,8 +197,12 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
   const [tableau, setTableau] = useState<TableauPile[]>(() => base.tableau);
   const [stock, setStock] = useState<Card[]>(() => base.deck);
   const [waste, setWaste] = useState<Card[]>(() => base.waste);
-  const [foundations, setFoundations] = useState<Foundations>(() => base.foundations);
-  const [startedAt, setStartedAt] = useState<number | null>(base.startedAt ?? null);
+  const [foundations, setFoundations] = useState<Foundations>(
+    () => base.foundations
+  );
+  const [startedAt, setStartedAt] = useState<number | null>(
+    base.startedAt ?? null
+  );
   const [outcome, setOutcome] = useState<Outcome>(base.outcome ?? 'playing');
   const [statusText, setStatusText] = useState(base.statusText ?? '');
   const [moves, setMoves] = useState(base.moves ?? 0);
@@ -287,7 +312,8 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
       if (outcome !== 'playing') return false;
       const moving = selectedCards(source, tableau, waste, foundations);
       if (moving.length === 0) return false;
-      if (source.type === 'tableau' && source.pileIndex === targetIndex) return false;
+      if (source.type === 'tableau' && source.pileIndex === targetIndex)
+        return false;
       const first = moving[0]!;
       const target = tableau[targetIndex];
       if (!target || !tableauCanTake(target, first)) return false;
@@ -343,20 +369,23 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
 
   const dragSourceRef = useRef<SelectedSource | null>(null);
   const [dragOverTarget, setDragOverTarget] = useState<
-    { kind: 'foundation'; suit: Suit } | { kind: 'tableau'; pileIndex: number } | null
+    | { kind: 'foundation'; suit: Suit }
+    | { kind: 'tableau'; pileIndex: number }
+    | null
   >(null);
 
-  const buildStackDragImage = useCallback((cards: Card[], width: number): HTMLElement => {
-    const wrap = document.createElement('div');
-    wrap.className = 'solitaire-drag-preview';
-    wrap.style.width = `${width}px`;
-    cards.forEach((card, i) => {
-      const c = document.createElement('div');
-      c.className = `solitaire-card tableau ${cardColor(card)}`;
-      if (i > 0) c.classList.add('stacked');
-      const rank = rankLabel(card);
-      const suit = suitGlyph(suitOf(card));
-      c.innerHTML = `
+  const buildStackDragImage = useCallback(
+    (cards: Card[], width: number): HTMLElement => {
+      const wrap = document.createElement('div');
+      wrap.className = 'solitaire-drag-preview';
+      wrap.style.width = `${width}px`;
+      cards.forEach((card, i) => {
+        const c = document.createElement('div');
+        c.className = `solitaire-card tableau ${cardColor(card)}`;
+        if (i > 0) c.classList.add('stacked');
+        const rank = rankLabel(card);
+        const suit = suitGlyph(suitOf(card));
+        c.innerHTML = `
         <span class="solitaire-card-face">
           <span class="solitaire-corner top-left">
             <span class="solitaire-corner-rank">${rank}</span>
@@ -368,11 +397,13 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
             <span class="solitaire-corner-suit">${suit}</span>
           </span>
         </span>`;
-      wrap.appendChild(c);
-    });
-    document.body.appendChild(wrap);
-    return wrap;
-  }, []);
+        wrap.appendChild(c);
+      });
+      document.body.appendChild(wrap);
+      return wrap;
+    },
+    []
+  );
 
   const beginDrag = useCallback(
     (event: DragEvent, source: SelectedSource) => {
@@ -387,7 +418,8 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
         event.dataTransfer.setData('text/plain', 'card');
 
         if (source.type === 'tableau') {
-          const cards = tableau[source.pileIndex]?.up.slice(source.startIndex) ?? [];
+          const cards =
+            tableau[source.pileIndex]?.up.slice(source.startIndex) ?? [];
           if (cards.length > 1) {
             const target = event.currentTarget as HTMLElement;
             const rect = target.getBoundingClientRect();
@@ -475,7 +507,9 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
         <span>Moves {moves}</span>
         <span className="solitaire-status-sep">|</span>
         <span>Stock {stock.length}</span>
-        {statusText ? <span className="solitaire-status-note">{statusText}</span> : null}
+        {statusText ? (
+          <span className="solitaire-status-note">{statusText}</span>
+        ) : null}
       </div>
 
       <div className="solitaire-top">
@@ -485,8 +519,13 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
             const isSelected =
               selected?.type === 'foundation' && selected.suit === suit;
             const isDropTarget =
-              dragOverTarget?.kind === 'foundation' && dragOverTarget.suit === suit;
-            const colorClass = top ? cardColor(top) : suit === 'H' || suit === 'D' ? 'red' : 'black';
+              dragOverTarget?.kind === 'foundation' &&
+              dragOverTarget.suit === suit;
+            const colorClass = top
+              ? cardColor(top)
+              : suit === 'H' || suit === 'D'
+                ? 'red'
+                : 'black';
             return (
               <button
                 key={suit}
@@ -517,7 +556,9 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
                 {top ? (
                   <CardFace card={top} />
                 ) : (
-                  <span className={`solitaire-foundation-ghost${colorClass === 'red' ? ' red' : ''}`}>
+                  <span
+                    className={`solitaire-foundation-ghost${colorClass === 'red' ? ' red' : ''}`}
+                  >
                     {suitGlyph(suit)}
                   </span>
                 )}
@@ -560,7 +601,8 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
                   onDragEnd={endDrag}
                   onClick={() => {
                     if (selected?.type === 'waste') {
-                      if (moveToFoundation({ type: 'waste' }, suitOf(card))) return;
+                      if (moveToFoundation({ type: 'waste' }, suitOf(card)))
+                        return;
                       clearSelection();
                       return;
                     }
@@ -583,13 +625,13 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
           onClick={onDraw}
           aria-label={stock.length > 0 ? 'Draw card' : 'Reset stock'}
         />
-
       </div>
 
       <div className="solitaire-tableau">
         {tableau.map((pile, pileIndex) => {
           const isDropTarget =
-            dragOverTarget?.kind === 'tableau' && dragOverTarget.pileIndex === pileIndex;
+            dragOverTarget?.kind === 'tableau' &&
+            dragOverTarget.pileIndex === pileIndex;
           return (
             <div
               key={pileIndex}
@@ -599,13 +641,21 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
                 setDragOverTarget({ kind: 'tableau', pileIndex });
               }}
               onDragLeave={event => {
-                if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+                if (
+                  event.currentTarget.contains(
+                    event.relatedTarget as Node | null
+                  )
+                )
+                  return;
                 setDragOverTarget(null);
               }}
               onDrop={event => onDropTableau(event, pileIndex)}
             >
               {pile.down.map((_, idx) => (
-                <div key={`down-${pileIndex}-${idx}`} className="solitaire-card down" />
+                <div
+                  key={`down-${pileIndex}-${idx}`}
+                  className="solitaire-card down"
+                />
               ))}
               {pile.up.map((card, upIndex) => {
                 const isSelected =

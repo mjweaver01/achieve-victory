@@ -73,8 +73,7 @@ export async function getAdmin(req: Request): Promise<Response> {
     .limit(25)
     .execute();
 
-  const completionRate =
-    totalSessions > 0 ? totalCodes / totalSessions : 0;
+  const completionRate = totalSessions > 0 ? totalCodes / totalSessions : 0;
 
   const response: AdminStatsResponse = {
     totalSessions,

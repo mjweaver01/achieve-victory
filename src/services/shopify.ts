@@ -68,9 +68,7 @@ export async function findOrCreateCustomer(
   return { customerId: String(createData.customer.id) };
 }
 
-export async function mintDiscountCode(
-  customerId: string
-): Promise<string> {
+export async function mintDiscountCode(customerId: string): Promise<string> {
   const percent = getDiscountPercent();
   const value = `-${percent}.0`;
 
@@ -117,5 +115,7 @@ export async function mintDiscountCode(
 }
 
 export function isShopifyConfigured(): boolean {
-  return Boolean(process.env.SHOPIFY_ADMIN_TOKEN && process.env.SHOPIFY_SHOP_DOMAIN);
+  return Boolean(
+    process.env.SHOPIFY_ADMIN_TOKEN && process.env.SHOPIFY_SHOP_DOMAIN
+  );
 }

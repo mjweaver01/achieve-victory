@@ -112,10 +112,7 @@ export function clearGameState(sessionId: string, game: GameType): void {
   write(data);
 }
 
-function ensureProgress(
-  sessionId: string,
-  game: GameType
-): StoredProgress {
+function ensureProgress(sessionId: string, game: GameType): StoredProgress {
   const existing = readRaw();
   if (existing?.sessionId === sessionId) {
     existing.game = game;

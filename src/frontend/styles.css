@@ -656,7 +656,8 @@ th {
   background: var(--card-bg-hover);
 }
 
-.solitaire-column > .solitaire-card.tableau:last-child:hover:not(.empty):not(.down),
+.solitaire-column
+  > .solitaire-card.tableau:last-child:hover:not(.empty):not(.down),
 .solitaire-card.solitaire-waste:hover:not(.empty),
 .solitaire-card.foundation:hover:not(.empty) {
   transform: translateY(-2px);

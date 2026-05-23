@@ -3,10 +3,7 @@ type Props = {
   label?: string;
 };
 
-export function StartOverButton({
-  onClick,
-  label = 'Start over',
-}: Props) {
+export function StartOverButton({ onClick, label = 'Start over' }: Props) {
   return (
     <button type="button" className="secondary" onClick={onClick}>
       {label}

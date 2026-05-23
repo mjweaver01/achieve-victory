@@ -1,9 +1,5 @@
 import { getDb } from '../db/index';
-import {
-  fulfillReward,
-  isRewardSystemConfigured,
-  RewardEmailDeliveryError,
-} from '../services/rewards';
+import { fulfillReward, isRewardSystemConfigured } from '../services/rewards';
 import { getDiscountOfferText } from '../services/discount';
 import type { CompleteRequest, CompleteResponse, GameType } from '../types/api';
 import { validateEmail } from '../utils/emailValidation';
@@ -16,9 +12,7 @@ function normalizeGame(game: CompleteRequest['game']): GameType {
   return 'puzzle';
 }
 
-export async function redeemSession(
-  body: CompleteRequest
-): Promise<Response> {
+export async function redeemSession(body: CompleteRequest): Promise<Response> {
   const offerText = getDiscountOfferText();
   const { sessionId, completionTimeMs, score } = body;
   if (!sessionId || !body.email || completionTimeMs == null) {
@@ -100,25 +94,6 @@ export async function redeemSession(
 
     return json({ success: true, code, offerText } satisfies CompleteResponse);
   } catch (err) {
-    if (err instanceof RewardEmailDeliveryError) {
-      await db
-        .insertInto('codes')
-        .values({
-          email,
-          code: err.code,
-          shopify_customer_id: err.shopifyCustomerId,
-          created_at: now,
-        })
-        .onConflict(oc => oc.column('email').doNothing())
-        .execute();
-
-      const msg = `${err.message} Your code is shown below.`;
-      console.error(
-        `[reward] email failed for ${email} (session=${sessionId}, code=${err.code}): ${err.message}`
-      );
-      return json({ error: msg, code: err.code, offerText }, 502);
-    }
-
     await db
       .updateTable('sessions')
       .set({
@@ -130,7 +105,7 @@ export async function redeemSession(
       .execute();
 
     const msg =
-      err instanceof Error ? err.message : 'Could not send reward email';
+      err instanceof Error ? err.message : 'Could not create discount code';
     console.error(
       `[reward] failed for ${email} (session=${sessionId}): ${msg}`
     );

@@ -61,9 +61,7 @@ export function AdminPage() {
           <div className="card card-stack">
             <p>Total plays: {stats.totalSessions}</p>
             <p>Codes issued: {stats.totalCodes}</p>
-            <p>
-              Completion rate: {(stats.completionRate * 100).toFixed(1)}%
-            </p>
+            <p>Completion rate: {(stats.completionRate * 100).toFixed(1)}%</p>
             <p>Drop-off (started, not finished): {stats.dropOffCount}</p>
             <p>Blocked email attempts: {stats.blockedAttempts}</p>
           </div>
@@ -73,7 +71,10 @@ export function AdminPage() {
             <div className="chart">
               <ResponsiveContainer>
                 <BarChart data={stats.codesByDay}>
-                  <XAxis dataKey="date" tick={{ fill: '#a3a3a3', fontSize: 11 }} />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fill: '#a3a3a3', fontSize: 11 }}
+                  />
                   <YAxis tick={{ fill: '#a3a3a3', fontSize: 11 }} />
                   <Tooltip />
                   <Bar dataKey="count" fill="#e11d48" />

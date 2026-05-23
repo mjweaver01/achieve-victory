@@ -32,13 +32,11 @@ export function SlidingPuzzle({
   const [startedAt, setStartedAt] = useState<number | null>(
     saved?.startedAt ?? null
   );
-  const [frozenElapsedMs, setFrozenElapsedMs] = useState(
-    () => (Number.isFinite(saved?.elapsedMs) ? saved!.elapsedMs : 0)
+  const [frozenElapsedMs, setFrozenElapsedMs] = useState(() =>
+    Number.isFinite(saved?.elapsedMs) ? saved!.elapsedMs : 0
   );
   const [done, setDone] = useState(saved?.done ?? false);
-  const [completionTimeMs, setCompletionTimeMs] = useState<
-    number | undefined
-  >(
+  const [completionTimeMs, setCompletionTimeMs] = useState<number | undefined>(
     saved?.completionTimeMs != null && Number.isFinite(saved.completionTimeMs)
       ? saved.completionTimeMs
       : undefined
@@ -68,12 +66,7 @@ export function SlidingPuzzle({
     setDone(true);
     setFrozenElapsedMs(ms);
     onComplete(ms);
-  }, [
-    shouldResumeComplete,
-    saved?.done,
-    saved?.completionTimeMs,
-    onComplete,
-  ]);
+  }, [shouldResumeComplete, saved?.done, saved?.completionTimeMs, onComplete]);
 
   const move = useCallback(
     (index: number) => {
@@ -112,9 +105,7 @@ export function SlidingPuzzle({
 
   return (
     <div>
-      <p className="timer">
-        Time: {formatDuration(elapsedMs)}
-      </p>
+      <p className="timer">Time: {formatDuration(elapsedMs)}</p>
       <div
         className="puzzle-grid"
         style={{ gridTemplateColumns: `repeat(${PUZZLE_SIZE}, 1fr)` }}

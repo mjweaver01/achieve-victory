@@ -21,8 +21,7 @@ function getPostgresUrl(): string | null {
   const maybeUrl = process.env.DATABASE_PATH?.trim();
   if (
     maybeUrl &&
-    (maybeUrl.startsWith('postgres://') ||
-      maybeUrl.startsWith('postgresql://'))
+    (maybeUrl.startsWith('postgres://') || maybeUrl.startsWith('postgresql://'))
   ) {
     console.warn(
       '[DB] DATABASE_PATH contains a Postgres URL; using it as DATABASE_URL. Set DATABASE_URL in Railway.'
@@ -38,7 +37,9 @@ export function isPostgres(): boolean {
 }
 
 export function getDbPath(): string {
-  return process.env.DATABASE_PATH ?? path.join(process.cwd(), 'data', 'madeon.db');
+  return (
+    process.env.DATABASE_PATH ?? path.join(process.cwd(), 'data', 'madeon.db')
+  );
 }
 
 export function getDb(): Kysely<DB> {
