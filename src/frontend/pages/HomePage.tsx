@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { Layout } from '../components/Layout';
 import type { GameType, StartResponse } from '../../types';
@@ -56,14 +56,31 @@ export function HomePage() {
     void startGame(game);
   }
 
-  function handleGameDoubleClick(selectedGame: GameType) {
-    void startGame(selectedGame);
-  }
+  const lastTapRef = useRef<{ game: GameType; time: number } | null>(null);
+
+  const useDoubleTap = useCallback(
+    (selectedGame: GameType) => ({
+      onDoubleClick: () => void startGame(selectedGame),
+      onTouchEnd: (e: React.TouchEvent) => {
+        const now = Date.now();
+        const last = lastTapRef.current;
+        if (last?.game === selectedGame && now - last.time < 300) {
+          e.preventDefault();
+          lastTapRef.current = null;
+          void startGame(selectedGame);
+        } else {
+          lastTapRef.current = { game: selectedGame, time: now };
+        }
+      },
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [loading]
+  );
 
   return (
     <Layout
       title="ACHIEVE VICTORY"
-      subtitle="Enter your email, pick a game, and earn your discount code."
+      subtitle="Enter your email, pick a game, and earn a discount code!"
     >
       <div className="card">
         <form ref={formRef} onSubmit={handleSubmit}>
@@ -84,7 +101,7 @@ export function HomePage() {
           <div className="game-picker">
             <label
               className="game-picker-option"
-              onDoubleClick={() => handleGameDoubleClick('puzzle')}
+              {...useDoubleTap('puzzle')}
             >
               <input
                 type="radio"
@@ -107,7 +124,7 @@ export function HomePage() {
             </label>
             <label
               className="game-picker-option"
-              onDoubleClick={() => handleGameDoubleClick('chess')}
+              {...useDoubleTap('chess')}
             >
               <input
                 type="radio"
@@ -130,7 +147,7 @@ export function HomePage() {
             </label>
             <label
               className="game-picker-option"
-              onDoubleClick={() => handleGameDoubleClick('solitaire')}
+              {...useDoubleTap('solitaire')}
             >
               <input
                 type="radio"
@@ -153,7 +170,7 @@ export function HomePage() {
             </label>
             <label
               className="game-picker-option"
-              onDoubleClick={() => handleGameDoubleClick('game2048')}
+              {...useDoubleTap('game2048')}
             >
               <input
                 type="radio"

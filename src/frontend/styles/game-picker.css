@@ -5,6 +5,12 @@
   margin-bottom: 0.25rem;
 }
 
+@media (min-width: 32rem) {
+  .game-picker {
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+  }
+}
+
 .game-picker-option {
   display: flex;
   flex-direction: column;
@@ -14,16 +20,20 @@
   text-align: center;
   border-radius: 0.5rem;
   border: 1px solid var(--border);
-  background: var(--input-bg);
+  background: color-mix(in srgb, var(--input-bg) 55%, transparent);
   cursor: pointer;
   transition:
     border-color 0.15s ease,
     background 0.15s ease;
 }
 
+.game-picker-option:hover {
+  background: color-mix(in srgb, var(--input-bg) 70%, transparent);
+}
+
 .game-picker-option:has(input:checked) {
   border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 14%, var(--input-bg));
+  background: color-mix(in srgb, var(--accent) 14%, color-mix(in srgb, var(--input-bg) 55%, transparent));
 }
 
 .game-picker-option input {

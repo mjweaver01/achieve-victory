@@ -29,8 +29,9 @@
 .leaderboard-filter-row select {
   width: auto;
   min-width: 9rem;
-  padding: 0.35rem 0.5rem;
+  padding: 0.35rem 2rem 0.35rem 0.5rem;
   font-size: 0.85rem;
+  background-color: color-mix(in srgb, var(--input-bg) 55%, transparent);
 }
 
 .leaderboard-table {
@@ -69,7 +70,8 @@
   position: sticky;
   top: 0;
   z-index: 1;
-  background: var(--bg);
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  backdrop-filter: blur(8px);
 }
 
 .leaderboard-table-scroll td:nth-child(2) {

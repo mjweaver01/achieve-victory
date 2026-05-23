@@ -12,7 +12,7 @@ import { rateLimitApi } from './middleware/rateLimit';
 const isProduction = process.env.NODE_ENV === 'production';
 
 console.log(
-  `🎵 Achieve Victory! Play to win your discount code. ${process.env.NODE_ENV ?? 'development'} mode`
+  `🎵 Achieve Victory! Play to win a discount code. ${process.env.NODE_ENV ?? 'development'} mode`
 );
 
 await initDb();
