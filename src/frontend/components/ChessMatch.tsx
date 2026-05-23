@@ -209,12 +209,12 @@ export function ChessMatch({ saved, onWin, onProgressChange }: Props) {
         outcome === 'playing' &&
         gameRef.current.turn() === 'w' &&
         piece.pieceType[0] === 'w',
-      darkSquareStyle: { backgroundColor: '#1a1a1a' },
-      lightSquareStyle: { backgroundColor: '#2e2e2e' },
+      darkSquareStyle: { backgroundColor: 'var(--chess-dark)' },
+      lightSquareStyle: { backgroundColor: 'var(--chess-light)' },
       boardStyle: {
         borderRadius: '8px',
-        border: '1px solid #2a2a2a',
-        boxShadow: '0 4px 24px rgba(0, 0, 0, 0.6)',
+        border: '1px solid var(--chess-border)',
+        boxShadow: 'var(--shadow-chess-board)',
       },
     }),
     [fen, onPieceDrop, outcome]

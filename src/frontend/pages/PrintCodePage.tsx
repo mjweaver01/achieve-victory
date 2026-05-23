@@ -52,8 +52,8 @@ export function PrintCodePage() {
             value={checkoutUrl}
             size={128}
             level="M"
-            fgColor="#111111"
-            bgColor="#ffffff"
+            fgColor="var(--qr-fg)"
+            bgColor="var(--qr-bg)"
             title={`Redeem code ${code} at checkout`}
           />
         </div>
