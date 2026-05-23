@@ -1,0 +1,72 @@
+.puzzle-complete {
+  text-align: center;
+}
+
+.puzzle-complete-logo {
+  display: block;
+  width: min(100%, 280px);
+  height: auto;
+  margin: 0 auto 1rem;
+}
+
+.puzzle-complete .secondary {
+  margin-top: 0;
+  white-space: nowrap;
+}
+
+.puzzle-complete-footer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.puzzle-complete-footer > * {
+  flex-basis: 50%;
+}
+
+.reward-code {
+  margin: 0.25rem 0 1rem;
+  font-size: 3rem;
+  color: var(--accent);
+}
+
+.reward-offer {
+  margin: 0.25rem 0 2rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.print-code-action {
+  display: flex;
+  justify-content: center;
+}
+
+.puzzle-grid {
+  display: grid;
+  gap: 4px;
+  aspect-ratio: 1;
+  margin: 1rem auto;
+}
+
+.puzzle-tile {
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+  color: var(--text);
+  background: var(--gradient-puzzle-tile);
+  transition:
+    transform 0.1s ease,
+    background 0.15s ease;
+}
+
+.puzzle-tile:not(.empty):hover {
+  transform: scale(1.03);
+  background: var(--gradient-puzzle-tile-hover);
+}
+
+.puzzle-tile.empty {
+  background: transparent;
+  cursor: default;
+}

@@ -1,0 +1,41 @@
+.site-header {
+  margin-bottom: 0.75rem;
+}
+
+.site-header a {
+  color: var(--text);
+}
+
+.site-header a:hover {
+  color: var(--linkColor);
+}
+
+.site-logo-link {
+  display: block;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.site-logo-link:hover {
+  opacity: 0.9;
+}
+
+.site-logo {
+  display: block;
+}
+
+.nav {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  font-size: 1.15rem;
+}
+
+.nav a {
+  color: var(--text);
+}
+
+.nav a:hover {
+  color: var(--linkColor);
+}

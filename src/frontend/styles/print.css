@@ -1,0 +1,132 @@
+.print-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 2rem;
+  background: var(--bg);
+}
+
+.print-page-empty {
+  color: var(--muted);
+}
+
+.gift-card {
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+.gift-card-logo {
+  display: block;
+  height: auto;
+  margin: 0 auto 3rem;
+}
+
+.gift-card-label {
+  margin: 0;
+  font-family: 'Barlow Semi Condensed', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.gift-card-code {
+  margin: 0.5rem 0;
+  font-family: 'Barlow Semi Condensed', sans-serif;
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  word-break: break-all;
+}
+
+.gift-card-offer {
+  margin: 0.5rem 0 0;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.gift-card-qr {
+  display: inline-block;
+  margin: 1.25rem auto 0;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: var(--qr-bg);
+}
+
+.gift-card-qr svg {
+  display: block;
+}
+
+.gift-card-qr-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.gift-card-note {
+  margin: 1rem 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.gift-card-footer {
+  margin-top: 1.25rem;
+  width: min(100%, 20rem);
+  margin-inline: auto;
+}
+
+.gift-card-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+.gift-card-actions .secondary,
+.gift-card-actions .primary {
+  width: auto;
+  flex: 1;
+  margin-top: 0;
+}
+
+.gift-card-back {
+  display: block;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: center;
+  text-decoration: none;
+}
+
+.gift-card-back:hover {
+  color: var(--linkColor);
+}
+
+@media print {
+  .print-hide {
+    display: none !important;
+  }
+
+  .print-page {
+    min-height: auto;
+    padding: 0;
+    background: var(--print-bg);
+    color: var(--print-fg);
+  }
+
+  .print-page,
+  .print-page * {
+    color: var(--print-fg) !important;
+  }
+
+  .gift-card {
+    box-shadow: none;
+    border-color: var(--gray-border-light);
+    background: var(--print-bg);
+  }
+}

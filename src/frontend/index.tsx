@@ -8,7 +8,7 @@ import { Game2048Page } from './pages/Game2048Page';
 import { LeaderboardPage } from './pages/LeaderboardPage';
 import { AdminPage } from './pages/AdminPage';
 import { PrintCodePage } from './pages/PrintCodePage';
-import './styles.css';
+import './styles/index.css';
 
 function App() {
   return (

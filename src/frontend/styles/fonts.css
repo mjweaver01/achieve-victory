@@ -1,0 +1,71 @@
+@font-face {
+  font-family: 'Inter';
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  src: url('../../../public/fonts/inter_n3.6faba940d2e90c9f1c2e0c5c2750b84af59fecc0.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url('../../../public/fonts/inter_n7.02711e6b374660cfc7915d1afc1c204e633421e4.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+  src: url('../../../public/fonts/inter_i3.6d51b5c1aff0e6286c06ee460a22e95b7c89d160.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+  src: url('../../../public/fonts/inter_i7.b377bcd4cc0f160622a22d638ae7e2cd9b86ea4c.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Barlow Semi Condensed';
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: url('../../../public/fonts/barlowsemicondensed_n6.0cde432d270780c18d435b6363ee972d9ec6d3e1.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Barlow Semi Condensed';
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url('../../../public/fonts/barlowsemicondensed_n7.bfd87af72ccd364a04fd3557ee4689706a53c60c.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Barlow Semi Condensed';
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+  src: url('../../../public/fonts/barlowsemicondensed_i6.7f45f20865bc47d93d2545f6a7fc1a50a88fd366.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Barlow Semi Condensed';
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+  src: url('../../../public/fonts/barlowsemicondensed_i7.e660b4997229ff1acb3382c48d778f280dc2307d.woff2')
+    format('woff2');
+}

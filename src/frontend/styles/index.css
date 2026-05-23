@@ -1,0 +1,12 @@
+@import './fonts.css';
+@import './variables.css';
+@import './globals.css';
+@import './layout.css';
+@import './game-picker.css';
+@import './puzzle.css';
+@import './print.css';
+@import './leaderboard.css';
+@import './games-shared.css';
+@import './chess.css';
+@import './solitaire.css';
+@import './game2048.css';
