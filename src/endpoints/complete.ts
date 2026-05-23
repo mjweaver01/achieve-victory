@@ -54,18 +54,7 @@ export async function redeemSession(
     .where('email', '=', email)
     .executeTakeFirst();
 
-  if (existingCode) {
-    console.log(
-      `[reward] code already exists for ${email} (session=${sessionId}, code=${existingCode.code})`
-    );
-    return json({
-      success: true,
-      code: existingCode.code,
-      offerText,
-    } satisfies CompleteResponse);
-  }
-
-  if (!isRewardSystemConfigured()) {
+  if (!isRewardSystemConfigured() && !existingCode) {
     return error('Reward system is not configured', 503);
   }
 
@@ -80,6 +69,17 @@ export async function redeemSession(
     })
     .where('id', '=', sessionId)
     .execute();
+
+  if (existingCode) {
+    console.log(
+      `[reward] code already exists for ${email} (session=${sessionId}, code=${existingCode.code}) — recording leaderboard entry`
+    );
+    return json({
+      success: true,
+      code: existingCode.code,
+      offerText,
+    } satisfies CompleteResponse);
+  }
 
   try {
     const { code, shopifyCustomerId } = await fulfillReward(email);

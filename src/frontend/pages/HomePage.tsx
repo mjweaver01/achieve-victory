@@ -34,11 +34,6 @@ export function HomePage() {
         return;
       }
 
-      if ('alreadyRedeemed' in data && data.alreadyRedeemed) {
-        setError(`You already have a code: ${data.code}`);
-        return;
-      }
-
       if ('sessionId' in data) {
         const normalized = email.trim().toLowerCase();
         storeSession(data.sessionId, normalized, game);

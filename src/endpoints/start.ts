@@ -38,20 +38,6 @@ export async function postStart(req: Request): Promise<Response> {
   const game = normalizeGame(body.game);
   const db = getDb();
 
-  const existingCode = await db
-    .selectFrom('codes')
-    .selectAll()
-    .where('email', '=', email)
-    .executeTakeFirst();
-
-  if (existingCode) {
-    const response: StartResponse = {
-      alreadyRedeemed: true,
-      code: existingCode.code,
-    };
-    return json(response);
-  }
-
   const sessionId = crypto.randomUUID();
   const startedAt = Date.now();
 

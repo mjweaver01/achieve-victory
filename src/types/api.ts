@@ -1,8 +1,6 @@
 export type GameType = 'puzzle' | 'chess' | 'solitaire' | 'game2048';
 
-export type StartResponse =
-  | { sessionId: string }
-  | { alreadyRedeemed: true; code: string };
+export type StartResponse = { sessionId: string };
 
 export type StartRequest = {
   email: string;
