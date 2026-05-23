@@ -54,22 +54,19 @@ export function PrintCodePage() {
         </div>
         <p className="gift-card-qr-hint">Scan to apply at checkout</p>
         <p className="gift-card-note">One-time use</p>
-        <a
-          href={checkoutUrl}
-          className="gift-card-store print-hide"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Shop now
-        </a>
+        <div className="gift-card-actions print-hide">
+          <button type="button" className="secondary" onClick={handlePrint}>
+            Print
+          </button>
+          <button
+            type="button"
+            className="primary"
+            onClick={() => window.open(checkoutUrl, '_blank')}
+          >
+            Shop now
+          </button>
+        </div>
       </div>
-      <button
-        type="button"
-        className="secondary print-hide print-page-button"
-        onClick={handlePrint}
-      >
-        Print
-      </button>
     </div>
   );
 }
