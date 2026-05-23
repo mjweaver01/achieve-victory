@@ -170,7 +170,7 @@ export function Game2048({ saved, onWin, onProgressChange }: Props) {
       const ms = Math.max(1, Date.now() - (start ?? Date.now()));
       setFrozenElapsedMs(ms);
       setOutcome('won');
-      setStatusText('2048 reached! Sending your code...');
+      setStatusText('2048 reached! Generating your code...');
       onWin(ms, nextScore);
     },
     [onWin]

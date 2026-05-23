@@ -44,8 +44,6 @@ export function useRedeemSession() {
   const [offerText, setOfferText] = useState(
     () => initialRedeem(sessionId).offerText ?? ''
   );
-  const [resendBusy, setResendBusy] = useState(false);
-  const [resendNotice, setResendNotice] = useState('');
   const [devSkipBusy, setDevSkipBusy] = useState(false);
 
   useEffect(() => {
@@ -99,7 +97,7 @@ export function useRedeemSession() {
         setStatus('done');
         setCode(data.code ?? '');
         setOfferText(data.offerText ?? '');
-        setMessage('Check your inbox for your discount code.');
+        setMessage('You did it!');
       } catch {
         setStatus('error');
         setMessage('Network error — try again.');
@@ -113,42 +111,7 @@ export function useRedeemSession() {
     setMessage('');
     setCode('');
     setOfferText('');
-    setResendNotice('');
   }, []);
-
-  const resendCode = useCallback(async () => {
-    const current = getStoredSession();
-    if (!current || status !== 'done') return;
-
-    setResendBusy(true);
-    setResendNotice('');
-    try {
-      const res = await fetch('/api/resend', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId: current.sessionId,
-          email: current.email,
-        }),
-      });
-      const data = (await res.json()) as { error?: string; mock?: boolean };
-
-      if (!res.ok) {
-        setResendNotice(data.error ?? 'Could not resend email');
-        return;
-      }
-
-      setResendNotice(
-        data.mock
-          ? 'Development mode — email not sent. Your code was logged in the server terminal.'
-          : 'Email sent again. Check your inbox.'
-      );
-    } catch {
-      setResendNotice('Network error — try again.');
-    } finally {
-      setResendBusy(false);
-    }
-  }, [status]);
 
   const devComplete = useCallback(
     async (completionTimeMs: number, score?: number) => {
@@ -189,7 +152,7 @@ export function useRedeemSession() {
         setStatus('done');
         setCode(data.code ?? '');
         setOfferText(data.offerText ?? '');
-        setMessage('Check your inbox for your discount code.');
+        setMessage('You did it!');
       } catch {
         setStatus('error');
         setMessage('Network error — try again.');
@@ -207,9 +170,6 @@ export function useRedeemSession() {
     offerText,
     redeem,
     resetRedeem,
-    resendCode,
-    resendBusy,
-    resendNotice,
     devComplete,
     devSkipBusy,
   };

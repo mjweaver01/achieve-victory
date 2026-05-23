@@ -4,7 +4,7 @@ import { formatDuration } from '../utils/time';
 
 type RedeemStatus = Exclude<RedeemProgress['status'], 'playing'>;
 
-const SUBMITTING_MESSAGE = 'Sending your code…';
+const SUBMITTING_MESSAGE = 'Generating your code…';
 
 type Props = {
   status: RedeemStatus;

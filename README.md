@@ -1,13 +1,12 @@
 # Madeon Promo Game
 
-Standalone promo web app: email capture → sliding puzzle → personalized Shopify discount via Resend.
+Standalone promo web app: email capture → mini-games → personalized Shopify discount code.
 
 ## Stack
 
 - Bun + React (HTML import bundling)
 - SQLite (local) or PostgreSQL (Railway via `DATABASE_URL`) + Kysely
 - Shopify Admin REST API
-- Resend email
 - Railway (planned)
 
 ## Local dev
@@ -15,7 +14,7 @@ Standalone promo web app: email capture → sliding puzzle → personalized Shop
 ```bash
 bun install
 cp .env.example .env
-# Optional locally: leave SHOPIFY_* / RESEND_* empty — dev auto-uses mock codes (printed in terminal)
+# Optional locally: leave SHOPIFY_* empty — dev auto-uses mock codes (printed in terminal)
 bun run dev
 ```
 
@@ -27,14 +26,13 @@ Put images and fonts in `public/` (see `public/README.md`). They are served at t
 
 ## API
 
-| Route               | Method | Description                                                                    |
-| ------------------- | ------ | ------------------------------------------------------------------------------ |
-| `/api/start`        | POST   | `{ email }` → `{ sessionId }`                                                  |
-| `/api/complete`     | POST   | `{ sessionId, email, completionTimeMs }`                                       |
-| `/api/resend`       | POST   | `{ sessionId, email }` — resend discount email after win                       |
-| `/api/leaderboard`  | GET    | Public anonymized leaderboard                                                  |
-| `/api/admin`        | GET    | `?key=` or `x-admin-secret` header                                             |
-| `/api/dev/complete` | POST   | Non-production only. Same body as `/api/complete`; `?key=` or `x-admin-secret` |
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/api/start` | POST | `{ email }` → `{ sessionId }` |
+| `/api/complete` | POST | `{ sessionId, email, completionTimeMs }` |
+| `/api/leaderboard` | GET | Public anonymized leaderboard |
+| `/api/admin` | GET | `?key=` or `x-admin-secret` header |
+| `/api/dev/complete` | POST | Non-production only. Same body as `/api/complete`; `?key=` or `x-admin-secret` |
 
 ### Dev: skip a game (local)
 
@@ -51,7 +49,7 @@ curl -X POST http://localhost:3847/api/dev/complete \
 
 ## Status
 
-Phase 1 (backend skeleton + routes + DB) and initial frontend are in place. Next: album art puzzle assets, React Email template, Railway deploy, client answers on open questions in the plan.
+Phase 1 (backend skeleton + routes + DB) and initial frontend are in place. Next: album art puzzle assets, Railway deploy, client answers on open questions in the plan.
 
 ## Railway database
 

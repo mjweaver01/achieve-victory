@@ -81,7 +81,7 @@ export function ChessMatch({ saved, onWin, onProgressChange }: Props) {
       const elapsed = Math.max(1, Date.now() - start);
       setFrozenElapsedMs(elapsed);
       setOutcome('playing');
-      setStatusText('Victory! Sending your code…');
+      setStatusText('Victory! Generating your code…');
       onWin(elapsed);
     },
     [onWin]

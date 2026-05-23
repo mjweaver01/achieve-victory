@@ -246,7 +246,7 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
       const ms = Math.max(1, Date.now() - (start ?? Date.now()));
       setFrozenElapsedMs(ms);
       setOutcome('won');
-      setStatusText('Victory! Sending your code...');
+      setStatusText('Victory! Generating your code...');
       onWin(ms, Math.max(1, 1000 - moves));
     },
     [moves, onWin]

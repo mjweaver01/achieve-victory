@@ -4,7 +4,7 @@ import { ChessMatch } from '../components/ChessMatch';
 import { DevSkipButton } from '../components/DevSkipButton';
 import { Layout } from '../components/Layout';
 import { PuzzleComplete } from '../components/PuzzleComplete';
-import { ResendCodeButton } from '../components/ResendCodeButton';
+import { PrintDiscountCodeButton } from '../components/PrintDiscountCodeButton';
 import { StartOverButton } from '../components/StartOverButton';
 import { useRedeemSession } from '../hooks/useRedeemSession';
 import {
@@ -25,9 +25,6 @@ export function ChessPage() {
     offerText,
     redeem,
     resetRedeem,
-    resendCode,
-    resendBusy,
-    resendNotice,
     devComplete,
     devSkipBusy,
   } = useRedeemSession();
@@ -98,12 +95,8 @@ export function ChessPage() {
             offerText={offerText}
             footer={
               <div className="puzzle-complete-footer">
-                {status === 'done' ? (
-                  <ResendCodeButton
-                    onClick={() => void resendCode()}
-                    disabled={resendBusy}
-                    notice={resendNotice}
-                  />
+                {status === 'done' && code ? (
+                  <PrintDiscountCodeButton code={code} offerText={offerText} />
                 ) : null}
                 <StartOverButton onClick={handleStartOver} />
               </div>

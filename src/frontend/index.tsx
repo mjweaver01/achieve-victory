@@ -7,6 +7,7 @@ import { SolitairePage } from './pages/SolitairePage';
 import { Game2048Page } from './pages/Game2048Page';
 import { LeaderboardPage } from './pages/LeaderboardPage';
 import { AdminPage } from './pages/AdminPage';
+import { PrintCodePage } from './pages/PrintCodePage';
 import './styles.css';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
         <Route path="/play/2048" element={<Game2048Page />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
         <Route path="/solve" element={<AdminPage />} />
+        <Route path="/print" element={<PrintCodePage />} />
       </Routes>
     </BrowserRouter>
   );

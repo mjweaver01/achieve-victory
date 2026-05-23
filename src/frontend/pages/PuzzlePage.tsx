@@ -4,7 +4,7 @@ import { Layout } from '../components/Layout';
 import { PuzzleComplete } from '../components/PuzzleComplete';
 import { SlidingPuzzle } from '../components/SlidingPuzzle';
 import { DevSkipButton } from '../components/DevSkipButton';
-import { ResendCodeButton } from '../components/ResendCodeButton';
+import { PrintDiscountCodeButton } from '../components/PrintDiscountCodeButton';
 import { StartOverButton } from '../components/StartOverButton';
 import { useRedeemSession } from '../hooks/useRedeemSession';
 import {
@@ -25,9 +25,6 @@ export function PuzzlePage() {
     offerText,
     redeem,
     resetRedeem,
-    resendCode,
-    resendBusy,
-    resendNotice,
     devComplete,
     devSkipBusy,
   } = useRedeemSession();
@@ -103,12 +100,8 @@ export function PuzzlePage() {
             timeMs={savedPuzzle?.completionTimeMs}
             footer={
               <div className="puzzle-complete-footer">
-                {status === 'done' ? (
-                  <ResendCodeButton
-                    onClick={() => void resendCode()}
-                    disabled={resendBusy}
-                    notice={resendNotice}
-                  />
+                {status === 'done' && code ? (
+                  <PrintDiscountCodeButton code={code} offerText={offerText} />
                 ) : null}
                 <StartOverButton onClick={handleStartOver} />
               </div>
