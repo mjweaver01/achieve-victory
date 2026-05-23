@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useElapsedTimer } from '../hooks/useElapsedTimer';
+import { isLocalDevHost } from './GameToolbar';
 import {
   type UndoRedoActions,
   useUndoRedo,
@@ -197,7 +198,8 @@ export function Game2048({ saved, onWin, onProgressChange, onUndoRedoReady }: Pr
     if (snapshot.outcome !== 'won') wonRef.current = false;
   }, []);
 
-  const historyEnabled = outcome !== 'won';
+  const historyEnabled =
+    outcome === 'playing' || (outcome === 'lost' && isLocalDevHost());
   const { pushHistory, undo, redo, canUndo, canRedo } = useUndoRedo(
     getSnapshot,
     applySnapshot,

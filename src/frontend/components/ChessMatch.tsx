@@ -13,6 +13,7 @@ import {
   type SquareHandlerArgs,
 } from 'react-chessboard';
 import { useElapsedTimer } from '../hooks/useElapsedTimer';
+import { isLocalDevHost } from './GameToolbar';
 import {
   type UndoRedoActions,
   useUndoRedo,
@@ -161,7 +162,9 @@ export function ChessMatch({
   }, []);
 
   const historyEnabled =
-    outcome === 'playing' || outcome === 'lost' || outcome === 'draw';
+    outcome === 'playing' ||
+    outcome === 'draw' ||
+    (outcome === 'lost' && isLocalDevHost());
   const { pushHistory, popHistory, undo, redo, canUndo, canRedo } = useUndoRedo(
     getSnapshot,
     applySnapshot,
