@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import { QRCode } from 'react-qr-code';
-import { useSearchParams } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { STORE_URL } from '../config';
+import { gamePath, getStoredSession } from '../utils/session';
 
 function discountUrl(storeUrl: string, code: string): string {
   const base = storeUrl.replace(/\/$/, '');
@@ -12,6 +13,10 @@ export function PrintCodePage() {
   const [params] = useSearchParams();
   const code = params.get('code') ?? '';
   const offerText = params.get('offer') ?? '';
+  const backTo = useMemo(() => {
+    const session = getStoredSession();
+    return session ? gamePath(session.game) : '/';
+  }, []);
   const checkoutUrl = useMemo(
     () => (code ? discountUrl(STORE_URL, code) : ''),
     [code]
@@ -54,17 +59,22 @@ export function PrintCodePage() {
         </div>
         <p className="gift-card-qr-hint">Scan to apply at checkout</p>
         <p className="gift-card-note">One-time use</p>
-        <div className="gift-card-actions print-hide">
-          <button type="button" className="secondary" onClick={handlePrint}>
-            Print
-          </button>
-          <button
-            type="button"
-            className="primary"
-            onClick={() => window.open(checkoutUrl, '_blank')}
-          >
-            Shop now
-          </button>
+        <div className="gift-card-footer print-hide">
+          <div className="gift-card-actions">
+            <button type="button" className="secondary" onClick={handlePrint}>
+              Print
+            </button>
+            <button
+              type="button"
+              className="primary"
+              onClick={() => window.open(checkoutUrl, '_blank')}
+            >
+              Shop now
+            </button>
+          </div>
+          <Link to={backTo} className="gift-card-back">
+            Back
+          </Link>
         </div>
       </div>
     </div>
