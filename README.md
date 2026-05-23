@@ -1,58 +1,78 @@
+<p align="center">
+  <img src="public/images/favicon.avif" alt="Madeon" width="96" />
+</p>
+
 # Madeon Promo Game
 
-Standalone promo web app: email capture → mini-games → personalized Shopify discount code.
+Email → mini-game → one-time Shopify discount code. Live on Railway.
+
+**Games:** sliding puzzle, chess, Aces Up solitaire, 2048.
+
+```mermaid
+flowchart LR
+  A[Email + game pick] -->|POST /api/start| B[Session]
+  B --> C[Play]
+  C -->|POST /api/complete| D{Code for email?}
+  D -->|no| E[Shopify: customer + discount]
+  D -->|yes| F[Return existing code]
+  E --> G[Print / checkout QR]
+  F --> G
+```
 
 ## Stack
 
-- Bun + React (HTML import bundling)
-- SQLite (local) or PostgreSQL (Railway via `DATABASE_URL`) + Kysely
-- Shopify Admin REST API
-- Railway (planned)
+Bun · React (HTML import) · Kysely · SQLite locally / Postgres on Railway · Shopify Admin REST
 
-## Local dev
+## Setup
 
 ```bash
 bun install
 cp .env.example .env
-# Optional locally: leave SHOPIFY_* empty — dev auto-uses mock codes (printed in terminal)
-bun run dev
+bun run dev   # http://localhost:3847
 ```
 
-Open http://localhost:3847
+Without `SHOPIFY_*` in dev, codes are mocked (`MADEON-DEV-…` in the terminal).
 
-## Static assets
-
-Put images and fonts in `public/` (see `public/README.md`). They are served at the site root, e.g. `public/images/logo.svg` → `/images/logo.svg`.
+| Variable | Purpose |
+|----------|---------|
+| `DATABASE_URL` | Postgres (Railway). Omit for local SQLite at `DATABASE_PATH` |
+| `SHOPIFY_ADMIN_TOKEN`, `SHOPIFY_SHOP_DOMAIN` | Discount minting |
+| `SHOPIFY_DISCOUNT_PERCENT` | Default `10` |
+| `ADMIN_SECRET` | `/solve` stats dashboard |
+| `BUN_PUBLIC_STORE_URL` | Checkout links + QR (default `https://madeon.store`) |
 
 ## API
 
-| Route | Method | Description |
+| Route | Method | Body / auth |
 |-------|--------|-------------|
-| `/api/start` | POST | `{ email }` → `{ sessionId }` |
-| `/api/complete` | POST | `{ sessionId, email, completionTimeMs }` |
-| `/api/leaderboard` | GET | Public anonymized leaderboard |
-| `/api/admin` | GET | `?key=` or `x-admin-secret` header |
-| `/api/dev/complete` | POST | Non-production only. Same body as `/api/complete`; `?key=` or `x-admin-secret` |
+| `/api/start` | POST | `{ email, game? }` → `{ sessionId }` |
+| `/api/complete` | POST | `{ sessionId, email, completionTimeMs, game?, score? }` → `{ code, offerText }` |
+| `/api/leaderboard` | GET | `?game=puzzle\|chess\|solitaire\|game2048` |
+| `/api/admin` | GET | `x-admin-secret` or `?key=` |
+| `/api/dev/complete` | POST | Same as complete; **404 in production** |
 
-### Dev: skip a game (local)
+One code per email. Replay visits reuse the same code.
 
-1. Set `ADMIN_SECRET` in `.env` and restart `bun dev`.
-2. Visit `http://localhost:3847/solve?key=YOUR_ADMIN_SECRET` once (stores the key for **Dev: skip to code** on puzzle/chess).
-3. Or call the API directly:
+## Local dev shortcuts
+
+- **Dev: skip to code** — toolbar button on `localhost` only.
+- **Stats** — `/solve` with `ADMIN_SECRET`.
+- **Skip via curl** (non-production):
 
 ```bash
 curl -X POST http://localhost:3847/api/dev/complete \
   -H 'Content-Type: application/json' \
-  -H 'x-admin-secret: YOUR_ADMIN_SECRET' \
-  -d '{"sessionId":"...","email":"you@example.com","completionTimeMs":5000}'
+  -d '{"sessionId":"…","email":"you@example.com","completionTimeMs":5000,"game":"puzzle"}'
 ```
 
-## Status
+## Scripts
 
-Phase 1 (backend skeleton + routes + DB) and initial frontend are in place. Next: album art puzzle assets, Railway deploy, client answers on open questions in the plan.
+```bash
+bun run dev          # hot reload
+bun run start        # production server
+bun run typecheck
+bun run lint
+bun run format:check
+```
 
-## Railway database
-
-Attach a **PostgreSQL** plugin — Railway injects `DATABASE_URL` and the app uses Postgres automatically (migrations run on boot). No volume required.
-
-For local dev, leave `DATABASE_URL` unset; SQLite is used at `DATABASE_PATH` (default `./data/madeon.db`).
+Static assets live in `public/` (`/images/*`, `/fonts/*`).
