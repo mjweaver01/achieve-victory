@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { GameToolbar } from '../components/GameToolbar';
+import { GameToolbar, GameToolbarButton } from '../components/GameToolbar';
 import { Layout } from '../components/Layout';
 import { PuzzleComplete } from '../components/PuzzleComplete';
 import { SlidingPuzzle } from '../components/SlidingPuzzle';
 import { PrintDiscountCodeButton } from '../components/PrintDiscountCodeButton';
 import { StartOverButton } from '../components/StartOverButton';
 import { useRedeemSession } from '../hooks/useRedeemSession';
+import type { UndoRedoActions } from '../hooks/useUndoRedo';
 import {
   clearGameState,
   loadProgress,
@@ -30,6 +31,7 @@ export function PuzzlePage() {
     devSkipBusy,
   } = useRedeemSession();
   const [gameKey, setGameKey] = useState(0);
+  const [undoRedo, setUndoRedo] = useState<UndoRedoActions | null>(null);
 
   const savedPuzzle = useMemo(() => {
     if (!session || gameKey > 0) return undefined;
@@ -81,7 +83,22 @@ export function PuzzlePage() {
                 void devComplete(ms);
               }}
               devSkipBusy={devSkipBusy}
-            />
+            >
+              <GameToolbarButton
+                onClick={() => undoRedo?.undo()}
+                disabled={!undoRedo?.canUndo}
+                aria-label="Undo"
+              >
+                Undo
+              </GameToolbarButton>
+              <GameToolbarButton
+                onClick={() => undoRedo?.redo()}
+                disabled={!undoRedo?.canRedo}
+                aria-label="Redo"
+              >
+                Redo
+              </GameToolbarButton>
+            </GameToolbar>
             <SlidingPuzzle
               key={gameKey}
               saved={savedPuzzle}
@@ -90,6 +107,7 @@ export function PuzzlePage() {
               }
               onComplete={ms => void redeem(ms)}
               onProgressChange={handleProgress}
+              onUndoRedoReady={setUndoRedo}
             />
           </>
         ) : (

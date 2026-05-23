@@ -7,6 +7,10 @@ import {
   useState,
 } from 'react';
 import { useElapsedTimer } from '../hooks/useElapsedTimer';
+import {
+  useUndoRedo,
+  useUndoRedoKeyboard,
+} from '../hooks/useUndoRedo';
 import type { SolitaireProgress } from '../utils/gameProgress';
 import { formatDuration } from '../utils/time';
 import { GameToolbar, GameToolbarButton } from './GameToolbar';
@@ -259,9 +263,6 @@ export function SolitaireMatch({
   const [selected, setSelected] = useState<SelectedSource | null>(null);
   const [frozenElapsedMs, setFrozenElapsedMs] = useState(0);
   const wonRef = useRef(false);
-  const pastRef = useRef<GameSnapshot[]>([]);
-  const futureRef = useRef<GameSnapshot[]>([]);
-  const [historyVersion, setHistoryVersion] = useState(0);
 
   const elapsedMs = useElapsedTimer({
     startedAt,
@@ -292,6 +293,38 @@ export function SolitaireMatch({
     onProgressChange,
   ]);
 
+  const getSnapshot = useCallback(
+    (): GameSnapshot =>
+      createSnapshot(tableau, stock, waste, foundations, moves),
+    [tableau, stock, waste, foundations, moves]
+  );
+
+  const applySnapshot = useCallback(
+    (snapshot: GameSnapshot) => {
+      setTableau(snapshot.tableau);
+      setStock(snapshot.stock);
+      setWaste(snapshot.waste);
+      setFoundations(snapshot.foundations);
+      setMoves(snapshot.moves);
+      setSelected(null);
+      setStatusText('');
+      if (outcome === 'won') {
+        wonRef.current = false;
+        setOutcome('playing');
+        setFrozenElapsedMs(0);
+      }
+    },
+    [outcome]
+  );
+
+  const { pushHistory, undo, redo, canUndo, canRedo } = useUndoRedo(
+    getSnapshot,
+    applySnapshot,
+    { enabled: outcome === 'playing', maxHistory: MAX_HISTORY }
+  );
+
+  useUndoRedoKeyboard(undo, redo, outcome === 'playing');
+
   const finishWin = useCallback(
     (start: number | null) => {
       if (wonRef.current) return;
@@ -312,64 +345,13 @@ export function SolitaireMatch({
   }, [foundations, finishWin, startedAt]);
 
   const markMove = useCallback(() => {
-    pastRef.current.push(
-      createSnapshot(tableau, stock, waste, foundations, moves)
-    );
-    if (pastRef.current.length > MAX_HISTORY) pastRef.current.shift();
-    futureRef.current = [];
-    setHistoryVersion(v => v + 1);
+    pushHistory();
     if (!startedAt) setStartedAt(Date.now());
     setMoves(prev => prev + 1);
     setStatusText('');
-  }, [tableau, stock, waste, foundations, moves, startedAt]);
+  }, [pushHistory, startedAt]);
 
   const clearSelection = useCallback(() => setSelected(null), []);
-
-  const applySnapshot = useCallback(
-    (snapshot: GameSnapshot) => {
-      setTableau(snapshot.tableau);
-      setStock(snapshot.stock);
-      setWaste(snapshot.waste);
-      setFoundations(snapshot.foundations);
-      setMoves(snapshot.moves);
-      setSelected(null);
-      setStatusText('');
-      if (outcome === 'won') {
-        wonRef.current = false;
-        setOutcome('playing');
-        setFrozenElapsedMs(0);
-      }
-    },
-    [outcome]
-  );
-
-  const undo = useCallback(() => {
-    if (outcome !== 'playing') return;
-    const past = pastRef.current;
-    if (past.length === 0) return;
-
-    futureRef.current.push(
-      createSnapshot(tableau, stock, waste, foundations, moves)
-    );
-    applySnapshot(past.pop()!);
-    setHistoryVersion(v => v + 1);
-  }, [outcome, tableau, stock, waste, foundations, moves, applySnapshot]);
-
-  const redo = useCallback(() => {
-    if (outcome !== 'playing') return;
-    const future = futureRef.current;
-    if (future.length === 0) return;
-
-    pastRef.current.push(
-      createSnapshot(tableau, stock, waste, foundations, moves)
-    );
-    applySnapshot(future.pop()!);
-    setHistoryVersion(v => v + 1);
-  }, [outcome, tableau, stock, waste, foundations, moves, applySnapshot]);
-
-  void historyVersion;
-  const canUndo = pastRef.current.length > 0 && outcome === 'playing';
-  const canRedo = futureRef.current.length > 0 && outcome === 'playing';
 
   const moveToFoundation = useCallback(
     (source: SelectedSource, targetSuit: Suit): boolean => {
@@ -582,30 +564,11 @@ export function SolitaireMatch({
       if (event.key === 'Escape' && selected) {
         event.preventDefault();
         clearSelection();
-        return;
-      }
-      if (outcome !== 'playing') return;
-      const mod = event.metaKey || event.ctrlKey;
-      if (!mod || event.altKey) return;
-      const key = event.key.toLowerCase();
-      if (key === 'z' && !event.shiftKey) {
-        event.preventDefault();
-        undo();
-        return;
-      }
-      if (key === 'z' && event.shiftKey) {
-        event.preventDefault();
-        redo();
-        return;
-      }
-      if (key === 'y') {
-        event.preventDefault();
-        redo();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selected, clearSelection, outcome, undo, redo]);
+  }, [selected, clearSelection]);
 
   const onDraw = useCallback(() => {
     if (outcome !== 'playing') return;

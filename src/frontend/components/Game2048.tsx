@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useElapsedTimer } from '../hooks/useElapsedTimer';
+import {
+  type UndoRedoActions,
+  useUndoRedo,
+  useUndoRedoKeyboard,
+} from '../hooks/useUndoRedo';
 import type { Game2048Progress } from '../utils/gameProgress';
 import { formatDuration } from '../utils/time';
 
@@ -37,6 +42,7 @@ type Props = {
   saved?: Game2048Progress;
   onWin: (elapsedMs: number, score?: number) => void;
   onProgressChange: (progress: Game2048Progress) => void;
+  onUndoRedoReady?: (actions: UndoRedoActions | null) => void;
 };
 
 function createEmptyBoard(): number[] {
@@ -132,7 +138,7 @@ function hasMoves(board: number[]): boolean {
   return dirs.some(dir => moveBoard(board, dir).moved);
 }
 
-export function Game2048({ saved, onWin, onProgressChange }: Props) {
+export function Game2048({ saved, onWin, onProgressChange, onUndoRedoReady }: Props) {
   const [board, setBoard] = useState<number[]>(
     () => saved?.board ?? createInitialBoard()
   );
@@ -163,6 +169,59 @@ export function Game2048({ saved, onWin, onProgressChange }: Props) {
     onProgressChange({ board, score, startedAt, outcome, statusText });
   }, [board, score, startedAt, outcome, statusText, onProgressChange]);
 
+  type Snapshot = {
+    board: number[];
+    score: number;
+    outcome: Outcome;
+    statusText: string;
+    frozenElapsedMs: number;
+  };
+
+  const getSnapshot = useCallback(
+    (): Snapshot => ({
+      board: [...board],
+      score,
+      outcome,
+      statusText,
+      frozenElapsedMs,
+    }),
+    [board, score, outcome, statusText, frozenElapsedMs]
+  );
+
+  const applySnapshot = useCallback((snapshot: Snapshot) => {
+    setBoard(snapshot.board);
+    setScore(snapshot.score);
+    setOutcome(snapshot.outcome);
+    setStatusText(snapshot.statusText);
+    setFrozenElapsedMs(snapshot.frozenElapsedMs);
+    if (snapshot.outcome !== 'won') wonRef.current = false;
+  }, []);
+
+  const historyEnabled = outcome !== 'won';
+  const { pushHistory, undo, redo, canUndo, canRedo } = useUndoRedo(
+    getSnapshot,
+    applySnapshot,
+    { enabled: historyEnabled }
+  );
+
+  useUndoRedoKeyboard(undo, redo, historyEnabled);
+
+  useEffect(() => {
+    if (!onUndoRedoReady) return;
+    if (!historyEnabled) {
+      onUndoRedoReady(null);
+      return;
+    }
+    onUndoRedoReady({ undo, redo, canUndo, canRedo });
+  }, [
+    onUndoRedoReady,
+    historyEnabled,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  ]);
+
   const finishWin = useCallback(
     (start: number | null, nextScore: number) => {
       if (wonRef.current) return;
@@ -181,6 +240,8 @@ export function Game2048({ saved, onWin, onProgressChange }: Props) {
       if (outcome !== 'playing') return;
       const result = moveBoard(board, direction);
       if (!result.moved) return;
+
+      pushHistory();
 
       let start = startedAt;
       if (!start) {
@@ -205,7 +266,7 @@ export function Game2048({ saved, onWin, onProgressChange }: Props) {
         setStatusText('No more moves. Start over and try again.');
       }
     },
-    [outcome, board, startedAt, score, finishWin]
+    [outcome, board, startedAt, score, finishWin, pushHistory]
   );
 
   useEffect(() => {

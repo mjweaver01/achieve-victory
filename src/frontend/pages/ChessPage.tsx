@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { ChessMatch } from '../components/ChessMatch';
-import { GameToolbar } from '../components/GameToolbar';
+import { GameToolbar, GameToolbarButton } from '../components/GameToolbar';
 import { Layout } from '../components/Layout';
 import { PuzzleComplete } from '../components/PuzzleComplete';
 import { PrintDiscountCodeButton } from '../components/PrintDiscountCodeButton';
 import { StartOverButton } from '../components/StartOverButton';
 import { useRedeemSession } from '../hooks/useRedeemSession';
+import type { UndoRedoActions } from '../hooks/useUndoRedo';
 import {
   clearGameState,
   loadProgress,
@@ -30,6 +31,7 @@ export function ChessPage() {
     devSkipBusy,
   } = useRedeemSession();
   const [gameKey, setGameKey] = useState(0);
+  const [undoRedo, setUndoRedo] = useState<UndoRedoActions | null>(null);
 
   const savedChess = useMemo(() => {
     if (!session || gameKey > 0) return undefined;
@@ -80,12 +82,28 @@ export function ChessPage() {
                 void devComplete(ms, 1);
               }}
               devSkipBusy={devSkipBusy}
-            />
+            >
+              <GameToolbarButton
+                onClick={() => undoRedo?.undo()}
+                disabled={!undoRedo?.canUndo}
+                aria-label="Undo"
+              >
+                Undo
+              </GameToolbarButton>
+              <GameToolbarButton
+                onClick={() => undoRedo?.redo()}
+                disabled={!undoRedo?.canRedo}
+                aria-label="Redo"
+              >
+                Redo
+              </GameToolbarButton>
+            </GameToolbar>
             <ChessMatch
               key={gameKey}
               saved={savedChess}
               onWin={ms => void redeem(ms, 1)}
               onProgressChange={handleProgress}
+              onUndoRedoReady={setUndoRedo}
             />
           </>
         ) : (

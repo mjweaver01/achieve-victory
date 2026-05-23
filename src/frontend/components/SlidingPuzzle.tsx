@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useElapsedTimer } from '../hooks/useElapsedTimer';
+import {
+  type UndoRedoActions,
+  useUndoRedo,
+  useUndoRedoKeyboard,
+} from '../hooks/useUndoRedo';
 import type { PuzzleProgress } from '../utils/gameProgress';
 import {
   applyPuzzleMove,
@@ -16,6 +21,7 @@ type Props = {
   shouldResumeComplete?: boolean;
   onComplete: (elapsedMs: number) => void;
   onProgressChange: (progress: PuzzleProgress) => void;
+  onUndoRedoReady?: (actions: UndoRedoActions | null) => void;
 };
 
 export function SlidingPuzzle({
@@ -23,6 +29,7 @@ export function SlidingPuzzle({
   shouldResumeComplete = false,
   onComplete,
   onProgressChange,
+  onUndoRedoReady,
 }: Props) {
   const completedRef = useRef(false);
 
@@ -58,6 +65,32 @@ export function SlidingPuzzle({
     });
   }, [board, startedAt, elapsedMs, done, completionTimeMs, onProgressChange]);
 
+  const getSnapshot = useCallback(
+    () => ({ board: normalizePuzzleBoard(board) }),
+    [board]
+  );
+
+  const applySnapshot = useCallback((snapshot: { board: number[] }) => {
+    setBoard(normalizePuzzleBoard(snapshot.board));
+  }, []);
+
+  const { pushHistory, undo, redo, canUndo, canRedo } = useUndoRedo(
+    getSnapshot,
+    applySnapshot,
+    { enabled: !done }
+  );
+
+  useUndoRedoKeyboard(undo, redo, !done);
+
+  useEffect(() => {
+    if (!onUndoRedoReady) return;
+    if (done) {
+      onUndoRedoReady(null);
+      return;
+    }
+    onUndoRedoReady({ undo, redo, canUndo, canRedo });
+  }, [onUndoRedoReady, done, undo, redo, canUndo, canRedo]);
+
   useEffect(() => {
     if (completedRef.current || !shouldResumeComplete) return;
     const ms = saved?.completionTimeMs;
@@ -72,33 +105,35 @@ export function SlidingPuzzle({
     (index: number) => {
       if (done) return;
 
+      const normalized = normalizePuzzleBoard(board);
+      const next = applyPuzzleMove(normalized, index);
+      if (!next) return;
+
+      pushHistory();
+
       const start = startedAt ?? Date.now();
       if (!startedAt) setStartedAt(start);
 
-      setBoard(prev => {
-        const normalized = normalizePuzzleBoard(prev);
-        const next = applyPuzzleMove(normalized, index);
-        if (!next) return normalized;
+      if (isPuzzleSolved(next)) {
+        const ms = Math.max(1, Date.now() - start);
+        setDone(true);
+        setFrozenElapsedMs(ms);
+        setCompletionTimeMs(ms);
+        setBoard(next);
+        onProgressChange({
+          board: next,
+          startedAt: start,
+          elapsedMs: ms,
+          done: true,
+          completionTimeMs: ms,
+        });
+        onComplete(ms);
+        return;
+      }
 
-        if (isPuzzleSolved(next)) {
-          const ms = Math.max(1, Date.now() - start);
-          setDone(true);
-          setFrozenElapsedMs(ms);
-          setCompletionTimeMs(ms);
-          onProgressChange({
-            board: next,
-            startedAt: start,
-            elapsedMs: ms,
-            done: true,
-            completionTimeMs: ms,
-          });
-          onComplete(ms);
-        }
-
-        return next;
-      });
+      setBoard(next);
     },
-    [done, onComplete, onProgressChange, startedAt]
+    [board, done, onComplete, onProgressChange, pushHistory, startedAt]
   );
 
   if (done) return null;

@@ -2,6 +2,11 @@ import { Chess } from 'chess.js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { useElapsedTimer } from '../hooks/useElapsedTimer';
+import {
+  type UndoRedoActions,
+  useUndoRedo,
+  useUndoRedoKeyboard,
+} from '../hooks/useUndoRedo';
 import type { ChessProgress } from '../utils/gameProgress';
 import { formatDuration } from '../utils/time';
 
@@ -13,6 +18,7 @@ type Props = {
   saved?: ChessProgress;
   onWin: (elapsedMs: number) => void;
   onProgressChange: (progress: ChessProgress) => void;
+  onUndoRedoReady?: (actions: UndoRedoActions | null) => void;
 };
 
 function playerWon(game: Chess): boolean {
@@ -41,7 +47,12 @@ function loadGame(saved?: ChessProgress): Chess {
   return new Chess();
 }
 
-export function ChessMatch({ saved, onWin, onProgressChange }: Props) {
+export function ChessMatch({
+  saved,
+  onWin,
+  onProgressChange,
+  onUndoRedoReady,
+}: Props) {
   const gameRef = useRef(loadGame(saved));
   const [startedAt, setStartedAt] = useState<number | null>(
     saved?.startedAt ?? null
@@ -74,6 +85,61 @@ export function ChessMatch({ saved, onWin, onProgressChange }: Props) {
   useEffect(() => {
     persist({});
   }, [fen, outcome, statusText, persist]);
+
+  type Snapshot = {
+    fen: string;
+    outcome: Outcome;
+    statusText: string;
+    frozenElapsedMs: number;
+  };
+
+  const getSnapshot = useCallback(
+    (): Snapshot => ({
+      fen: gameRef.current.fen(),
+      outcome,
+      statusText,
+      frozenElapsedMs,
+    }),
+    [outcome, statusText, frozenElapsedMs]
+  );
+
+  const applySnapshot = useCallback((snapshot: Snapshot) => {
+    try {
+      gameRef.current = new Chess(snapshot.fen);
+    } catch {
+      gameRef.current = new Chess();
+    }
+    setFen(snapshot.fen);
+    setOutcome(snapshot.outcome);
+    setStatusText(snapshot.statusText);
+    setFrozenElapsedMs(snapshot.frozenElapsedMs);
+  }, []);
+
+  const historyEnabled =
+    outcome === 'playing' || outcome === 'lost' || outcome === 'draw';
+  const { pushHistory, undo, redo, canUndo, canRedo } = useUndoRedo(
+    getSnapshot,
+    applySnapshot,
+    { enabled: historyEnabled }
+  );
+
+  useUndoRedoKeyboard(undo, redo, historyEnabled);
+
+  useEffect(() => {
+    if (!onUndoRedoReady) return;
+    if (!historyEnabled) {
+      onUndoRedoReady(null);
+      return;
+    }
+    onUndoRedoReady({ undo, redo, canUndo, canRedo });
+  }, [
+    onUndoRedoReady,
+    historyEnabled,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  ]);
 
   const finishWin = useCallback(
     (startAt: number | null) => {
@@ -119,6 +185,8 @@ export function ChessMatch({ saved, onWin, onProgressChange }: Props) {
         return false;
       }
       if (!move) return false;
+
+      pushHistory();
 
       const nextFen = game.fen();
       setFen(nextFen);
@@ -196,7 +264,7 @@ export function ChessMatch({ saved, onWin, onProgressChange }: Props) {
       persist({ fen: afterBotFen, startedAt: start, outcome: 'playing' });
       return true;
     },
-    [finishWin, outcome, persist]
+    [finishWin, outcome, persist, pushHistory, startedAt]
   );
 
   const boardOptions = useMemo(
