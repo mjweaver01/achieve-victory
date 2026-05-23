@@ -5,12 +5,15 @@ import {
   RewardEmailDeliveryError,
 } from '../services/rewards';
 import { getDiscountOfferText } from '../services/discount';
-import type { CompleteRequest, CompleteResponse } from '../types/api';
+import type { CompleteRequest, CompleteResponse, GameType } from '../types/api';
 import { validateEmail } from '../utils/emailValidation';
 import { error, json } from '../utils/http';
 
-function normalizeGame(game: CompleteRequest['game']): 'puzzle' | 'chess' {
-  return game === 'chess' ? 'chess' : 'puzzle';
+function normalizeGame(game: CompleteRequest['game']): GameType {
+  if (game === 'chess') return 'chess';
+  if (game === 'solitaire') return 'solitaire';
+  if (game === 'game2048') return 'game2048';
+  return 'puzzle';
 }
 
 export async function redeemSession(

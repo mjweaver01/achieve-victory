@@ -3,13 +3,15 @@ import { useNavigate } from 'react-router';
 import { Layout } from '../components/Layout';
 import type { StartResponse } from '../../types/api';
 import {
+  gamePath,
+  getLastEmail,
   storeSession,
   type GameType,
 } from '../utils/session';
 
 export function HomePage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() => getLastEmail());
   const [game, setGame] = useState<GameType>('puzzle');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -40,7 +42,7 @@ export function HomePage() {
       if ('sessionId' in data) {
         const normalized = email.trim().toLowerCase();
         storeSession(data.sessionId, normalized, game);
-        navigate(`/play/${game}`);
+        navigate(gamePath(game));
       }
     } catch {
       setError('Network error — try again.');
@@ -80,7 +82,7 @@ export function HomePage() {
                 onChange={() => setGame('puzzle')}
               />
               <img
-                src="/images/MINIDOLLS_L.png"
+                src="/images/g1.png"
                 alt=""
                 className="game-picker-icon"
                 width={1000}
@@ -100,7 +102,7 @@ export function HomePage() {
                 onChange={() => setGame('chess')}
               />
               <img
-                src="/images/MINIDOLLS_R.png"
+                src="/images/g2.png"
                 alt=""
                 className="game-picker-icon"
                 width={1000}
@@ -109,6 +111,46 @@ export function HomePage() {
               <span className="game-picker-title">Chess</span>
               <span className="game-picker-desc">
                 Beat the computer by checkmate
+              </span>
+            </label>
+            <label className="game-picker-option">
+              <input
+                type="radio"
+                name="game"
+                value="solitaire"
+                checked={game === 'solitaire'}
+                onChange={() => setGame('solitaire')}
+              />
+              <img
+                src="/images/g3.png"
+                alt=""
+                className="game-picker-icon"
+                width={1000}
+                height={1000}
+              />
+              <span className="game-picker-title">Solitaire</span>
+              <span className="game-picker-desc">
+                Aces Up: clear cards until only four remain
+              </span>
+            </label>
+            <label className="game-picker-option">
+              <input
+                type="radio"
+                name="game"
+                value="game2048"
+                checked={game === 'game2048'}
+                onChange={() => setGame('game2048')}
+              />
+              <img
+                src="/images/g4.png"
+                alt=""
+                className="game-picker-icon"
+                width={1000}
+                height={1000}
+              />
+              <span className="game-picker-title">2048</span>
+              <span className="game-picker-desc">
+                Merge tiles and reach 2048
               </span>
             </label>
           </div>

@@ -23,11 +23,40 @@ export type ChessProgress = {
   statusText: string;
 };
 
+export type SolitaireProgress = {
+  tableau: {
+    down: string[];
+    up: string[];
+  }[];
+  deck: string[];
+  waste: string[];
+  foundations: {
+    S: string[];
+    H: string[];
+    D: string[];
+    C: string[];
+  };
+  startedAt: number | null;
+  outcome: 'playing' | 'won';
+  statusText: string;
+  moves: number;
+};
+
+export type Game2048Progress = {
+  board: number[];
+  score: number;
+  startedAt: number | null;
+  outcome: 'playing' | 'won' | 'lost';
+  statusText: string;
+};
+
 export type StoredProgress = {
   sessionId: string;
   game: GameType;
   puzzle?: PuzzleProgress;
   chess?: ChessProgress;
+  solitaire?: SolitaireProgress;
+  game2048?: Game2048Progress;
   redeem?: RedeemProgress;
 };
 
@@ -71,7 +100,9 @@ export function clearGameState(sessionId: string, game: GameType): void {
   const data = readRaw();
   if (!data || data.sessionId !== sessionId) return;
   if (game === 'puzzle') delete data.puzzle;
-  else delete data.chess;
+  else if (game === 'chess') delete data.chess;
+  else if (game === 'solitaire') delete data.solitaire;
+  else delete data.game2048;
   data.redeem = {
     status: 'playing',
     message: '',
@@ -112,6 +143,24 @@ export function saveChessProgress(
 ): void {
   const data = ensureProgress(sessionId, 'chess');
   data.chess = chess;
+  write(data);
+}
+
+export function saveSolitaireProgress(
+  sessionId: string,
+  solitaire: SolitaireProgress
+): void {
+  const data = ensureProgress(sessionId, 'solitaire');
+  data.solitaire = solitaire;
+  write(data);
+}
+
+export function save2048Progress(
+  sessionId: string,
+  progress: Game2048Progress
+): void {
+  const data = ensureProgress(sessionId, 'game2048');
+  data.game2048 = progress;
   write(data);
 }
 

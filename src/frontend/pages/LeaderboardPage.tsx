@@ -7,6 +7,13 @@ function formatDate(ts: number): string {
   return new Date(ts).toLocaleDateString();
 }
 
+function gameLabel(game: GameType): string {
+  if (game === 'chess') return 'Chess';
+  if (game === 'solitaire') return 'Solitaire';
+  if (game === 'game2048') return '2048';
+  return 'Puzzle';
+}
+
 type SortBy = 'time' | 'date' | 'player' | 'game';
 type SortOrder = 'asc' | 'desc';
 
@@ -84,6 +91,8 @@ export function LeaderboardPage() {
             <option value="all">All games</option>
             <option value="puzzle">Puzzle</option>
             <option value="chess">Chess</option>
+            <option value="solitaire">Solitaire</option>
+            <option value="game2048">2048</option>
           </select>
         </div>
         <table>
@@ -133,7 +142,7 @@ export function LeaderboardPage() {
               <tr key={`${row.rank}-${row.email}-${row.game}`}>
                 <td>{index + 1}</td>
                 <td>{row.email}</td>
-                <td>{row.game === 'chess' ? 'Chess' : 'Puzzle'}</td>
+                <td>{gameLabel(row.game)}</td>
                 <td>{formatDuration(row.completionTimeMs)}</td>
                 <td>{formatDate(row.completedAt)}</td>
               </tr>

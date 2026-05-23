@@ -7,7 +7,10 @@ import {
 import { error, json } from '../utils/http';
 
 function normalizeGame(game: string | undefined): GameType {
-  return game === 'chess' ? 'chess' : 'puzzle';
+  if (game === 'chess') return 'chess';
+  if (game === 'solitaire') return 'solitaire';
+  if (game === 'game2048') return 'game2048';
+  return 'puzzle';
 }
 
 export async function postStart(req: Request): Promise<Response> {

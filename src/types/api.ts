@@ -1,4 +1,4 @@
-export type GameType = 'puzzle' | 'chess';
+export type GameType = 'puzzle' | 'chess' | 'solitaire' | 'game2048';
 
 export type StartResponse =
   | { sessionId: string }

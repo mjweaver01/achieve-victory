@@ -1,21 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { DevSkipButton } from '../components/DevSkipButton';
+import { Game2048 } from '../components/Game2048';
 import { Layout } from '../components/Layout';
 import { PuzzleComplete } from '../components/PuzzleComplete';
-import { SlidingPuzzle } from '../components/SlidingPuzzle';
-import { DevSkipButton } from '../components/DevSkipButton';
 import { ResendCodeButton } from '../components/ResendCodeButton';
 import { StartOverButton } from '../components/StartOverButton';
 import { useRedeemSession } from '../hooks/useRedeemSession';
 import {
   clearGameState,
   loadProgress,
-  savePuzzleProgress,
-  type PuzzleProgress,
+  save2048Progress,
+  type Game2048Progress,
 } from '../utils/gameProgress';
 import { gamePath, getStoredSession } from '../utils/session';
 
-export function PuzzlePage() {
+export function Game2048Page() {
   const navigate = useNavigate();
   const session = getStoredSession();
   const {
@@ -33,9 +33,9 @@ export function PuzzlePage() {
   } = useRedeemSession();
   const [gameKey, setGameKey] = useState(0);
 
-  const savedPuzzle = useMemo(() => {
+  const savedGame = useMemo(() => {
     if (!session || gameKey > 0) return undefined;
-    return loadProgress(session.sessionId)?.puzzle;
+    return loadProgress(session.sessionId)?.game2048;
   }, [session, gameKey]);
 
   useEffect(() => {
@@ -43,21 +43,21 @@ export function PuzzlePage() {
       navigate('/');
       return;
     }
-    if (session.game !== 'puzzle') {
+    if (session.game !== 'game2048') {
       navigate(gamePath(session.game));
     }
   }, [navigate, session]);
 
   const handleProgress = useCallback(
-    (progress: PuzzleProgress) => {
-      if (session) savePuzzleProgress(session.sessionId, progress);
+    (progress: Game2048Progress) => {
+      if (session) save2048Progress(session.sessionId, progress);
     },
     [session]
   );
 
   const handleStartOver = useCallback(() => {
     if (!session) return;
-    clearGameState(session.sessionId, 'puzzle');
+    clearGameState(session.sessionId, 'game2048');
     resetRedeem();
     setGameKey(k => k + 1);
   }, [session, resetRedeem]);
@@ -66,30 +66,26 @@ export function PuzzlePage() {
 
   return (
     <Layout
-      title="Slide to Victory"
-      subtitle="Arrange the tiles in order. Any completion earns your code."
+      title="2048 Rush"
+      subtitle="Merge matching tiles and reach 2048 to earn your code."
     >
       <div className="card">
         {status === 'playing' ? (
           <>
-            <SlidingPuzzle
+            <Game2048
               key={gameKey}
-              saved={savedPuzzle}
-              shouldResumeComplete={
-                status === 'playing' && Boolean(savedPuzzle?.done)
-              }
-              onComplete={ms => void redeem(ms)}
+              saved={savedGame}
+              onWin={(ms, score) => void redeem(ms, score)}
               onProgressChange={handleProgress}
             />
             <DevSkipButton
               disabled={devSkipBusy}
               onClick={() => {
                 const ms =
-                  savedPuzzle?.elapsedMs ??
-                  (savedPuzzle?.startedAt
-                    ? Date.now() - savedPuzzle.startedAt
-                    : 1000);
-                void devComplete(ms);
+                  savedGame?.startedAt != null
+                    ? Math.max(1, Date.now() - savedGame.startedAt)
+                    : 1000;
+                void devComplete(ms, savedGame?.score ?? 2048);
               }}
             />
             <StartOverButton onClick={handleStartOver} />
@@ -100,7 +96,6 @@ export function PuzzlePage() {
             message={message}
             code={code}
             offerText={offerText}
-            timeMs={savedPuzzle?.completionTimeMs}
             footer={
               <div className="puzzle-complete-footer">
                 {status === 'done' ? (

@@ -13,7 +13,7 @@ import {
   saveChessProgress,
   type ChessProgress,
 } from '../utils/gameProgress';
-import { getStoredSession } from '../utils/session';
+import { gamePath, getStoredSession } from '../utils/session';
 
 export function ChessPage() {
   const navigate = useNavigate();
@@ -44,7 +44,7 @@ export function ChessPage() {
       return;
     }
     if (session.game !== 'chess') {
-      navigate(`/play/${session.game}`);
+      navigate(gamePath(session.game));
     }
   }, [navigate, session]);
 

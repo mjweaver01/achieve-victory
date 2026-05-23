@@ -1,4 +1,4 @@
-export type GameType = 'puzzle' | 'chess';
+export type GameType = 'puzzle' | 'chess' | 'solitaire' | 'game2048';
 
 export type StoredSession = {
   sessionId: string;
@@ -9,6 +9,11 @@ export type StoredSession = {
 import { clearProgress } from './gameProgress';
 
 const SESSION_KEY = 'madeon_session';
+const LAST_EMAIL_KEY = 'madeon_last_email';
+
+export function gamePath(game: GameType): string {
+  return game === 'game2048' ? '/play/2048' : `/play/${game}`;
+}
 
 export function getStoredSession(): StoredSession | null {
   const raw = sessionStorage.getItem(SESSION_KEY);
@@ -18,11 +23,22 @@ export function getStoredSession(): StoredSession | null {
     if (!data.sessionId || !data.email) return null;
     return {
       ...data,
-      game: data.game === 'chess' ? 'chess' : 'puzzle',
+      game:
+        data.game === 'chess' ||
+        data.game === 'solitaire' ||
+        data.game === 'game2048'
+          ? data.game
+          : 'puzzle',
     };
   } catch {
     return null;
   }
+}
+
+export function getLastEmail(): string {
+  const fromSession = getStoredSession()?.email;
+  if (fromSession) return fromSession;
+  return localStorage.getItem(LAST_EMAIL_KEY) ?? '';
 }
 
 export function storeSession(
@@ -38,4 +54,5 @@ export function storeSession(
     SESSION_KEY,
     JSON.stringify({ sessionId, email, game })
   );
+  localStorage.setItem(LAST_EMAIL_KEY, email);
 }

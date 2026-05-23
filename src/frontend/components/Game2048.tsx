@@ -1,0 +1,235 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useElapsedTimer } from '../hooks/useElapsedTimer';
+import type { Game2048Progress } from '../utils/gameProgress';
+import { formatDuration } from '../utils/time';
+
+const SIZE = 4;
+const CELL_COUNT = SIZE * SIZE;
+
+type Direction = 'up' | 'down' | 'left' | 'right';
+type Outcome = Game2048Progress['outcome'];
+
+type Props = {
+  saved?: Game2048Progress;
+  onWin: (elapsedMs: number, score?: number) => void;
+  onProgressChange: (progress: Game2048Progress) => void;
+};
+
+function createEmptyBoard(): number[] {
+  return Array.from({ length: CELL_COUNT }, () => 0);
+}
+
+function pickRandomEmptyIndex(board: number[]): number | null {
+  const empties = board
+    .map((value, idx) => (value === 0 ? idx : -1))
+    .filter(idx => idx >= 0);
+  if (empties.length === 0) return null;
+  return empties[Math.floor(Math.random() * empties.length)] ?? null;
+}
+
+function addRandomTile(board: number[]): number[] {
+  const idx = pickRandomEmptyIndex(board);
+  if (idx == null) return board;
+  const next = [...board];
+  next[idx] = Math.random() < 0.9 ? 2 : 4;
+  return next;
+}
+
+function createInitialBoard(): number[] {
+  return addRandomTile(addRandomTile(createEmptyBoard()));
+}
+
+function slideRowLeft(row: number[]): { row: number[]; gain: number } {
+  const filtered = row.filter(v => v > 0);
+  const merged: number[] = [];
+  let gain = 0;
+  for (let i = 0; i < filtered.length; i += 1) {
+    const current = filtered[i]!;
+    const next = filtered[i + 1];
+    if (next != null && next === current) {
+      const value = current * 2;
+      merged.push(value);
+      gain += value;
+      i += 1;
+    } else {
+      merged.push(current);
+    }
+  }
+  while (merged.length < SIZE) merged.push(0);
+  return { row: merged, gain };
+}
+
+function boardToRows(board: number[]): number[][] {
+  return Array.from({ length: SIZE }, (_, r) =>
+    board.slice(r * SIZE, r * SIZE + SIZE)
+  );
+}
+
+function rowsToBoard(rows: number[][]): number[] {
+  return rows.flat();
+}
+
+function transpose(rows: number[][]): number[][] {
+  return rows[0]!.map((_, i) => rows.map(row => row[i]!));
+}
+
+function reverseRows(rows: number[][]): number[][] {
+  return rows.map(row => [...row].reverse());
+}
+
+function moveBoard(
+  board: number[],
+  direction: Direction
+): { board: number[]; gain: number; moved: boolean } {
+  let rows = boardToRows(board);
+  const vertical = direction === 'up' || direction === 'down';
+  const reverse = direction === 'right' || direction === 'down';
+  if (vertical) rows = transpose(rows);
+  if (reverse) rows = reverseRows(rows);
+
+  let gain = 0;
+  const movedRows = rows.map(row => {
+    const result = slideRowLeft(row);
+    gain += result.gain;
+    return result.row;
+  });
+
+  let normalized = movedRows;
+  if (reverse) normalized = reverseRows(normalized);
+  if (vertical) normalized = transpose(normalized);
+  const nextBoard = rowsToBoard(normalized);
+  const moved = nextBoard.some((value, idx) => value !== board[idx]);
+  return { board: nextBoard, gain, moved };
+}
+
+function hasMoves(board: number[]): boolean {
+  if (board.some(v => v === 0)) return true;
+  const dirs: Direction[] = ['up', 'down', 'left', 'right'];
+  return dirs.some(dir => moveBoard(board, dir).moved);
+}
+
+export function Game2048({ saved, onWin, onProgressChange }: Props) {
+  const [board, setBoard] = useState<number[]>(() => saved?.board ?? createInitialBoard());
+  const [score, setScore] = useState(saved?.score ?? 0);
+  const [startedAt, setStartedAt] = useState<number | null>(saved?.startedAt ?? null);
+  const [outcome, setOutcome] = useState<Outcome>(saved?.outcome ?? 'playing');
+  const [statusText, setStatusText] = useState(saved?.statusText ?? '');
+  const [frozenElapsedMs, setFrozenElapsedMs] = useState(0);
+  const wonRef = useRef(false);
+
+  const elapsedMs = useElapsedTimer({
+    startedAt,
+    frozenMs: frozenElapsedMs,
+    isStopped: outcome !== 'playing',
+  });
+
+  useEffect(() => {
+    onProgressChange({ board, score, startedAt, outcome, statusText });
+  }, [board, score, startedAt, outcome, statusText, onProgressChange]);
+
+  const finishWin = useCallback(
+    (start: number | null, nextScore: number) => {
+      if (wonRef.current) return;
+      wonRef.current = true;
+      const ms = Math.max(1, Date.now() - (start ?? Date.now()));
+      setFrozenElapsedMs(ms);
+      setOutcome('won');
+      setStatusText('2048 reached! Sending your code...');
+      onWin(ms, nextScore);
+    },
+    [onWin]
+  );
+
+  const applyMove = useCallback(
+    (direction: Direction) => {
+      if (outcome !== 'playing') return;
+      const result = moveBoard(board, direction);
+      if (!result.moved) return;
+
+      let start = startedAt;
+      if (!start) {
+        start = Date.now();
+        setStartedAt(start);
+      }
+
+      const nextScore = score + result.gain;
+      const withSpawn = addRandomTile(result.board);
+      setBoard(withSpawn);
+      setScore(nextScore);
+
+      if (withSpawn.some(v => v >= 2048)) {
+        finishWin(start, nextScore);
+        return;
+      }
+
+      if (!hasMoves(withSpawn)) {
+        const ms = start ? Math.max(1, Date.now() - start) : 0;
+        setFrozenElapsedMs(ms);
+        setOutcome('lost');
+        setStatusText('No more moves. Start over and try again.');
+      }
+    },
+    [outcome, board, startedAt, score, finishWin]
+  );
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        applyMove('up');
+      } else if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        applyMove('down');
+      } else if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        applyMove('left');
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        applyMove('right');
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [applyMove]);
+
+  return (
+    <div className="game2048-wrap">
+      <p className="timer">Time: {formatDuration(elapsedMs)}</p>
+      <p className="game2048-meta">Score: {score}</p>
+      {statusText ? <p className="timer">{statusText}</p> : null}
+      <div className="game2048-grid">
+        {board.map((value, idx) => (
+          <div key={idx} className={`game2048-cell${value === 0 ? ' empty' : ''}`}>
+            {value === 0 ? '' : value}
+          </div>
+        ))}
+      </div>
+      <div className="game2048-controls">
+        <button type="button" className="secondary" onClick={() => applyMove('up')}>
+          Up
+        </button>
+        <button
+          type="button"
+          className="secondary"
+          onClick={() => applyMove('left')}
+        >
+          Left
+        </button>
+        <button
+          type="button"
+          className="secondary"
+          onClick={() => applyMove('down')}
+        >
+          Down
+        </button>
+        <button
+          type="button"
+          className="secondary"
+          onClick={() => applyMove('right')}
+        >
+          Right
+        </button>
+      </div>
+    </div>
+  );
+}

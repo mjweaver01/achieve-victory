@@ -1,9 +1,16 @@
 import { getDb } from '../db/index';
-import type { LeaderboardResponse } from '../types/api';
+import type { GameType, LeaderboardResponse } from '../types/api';
 import { anonymizeEmail } from '../utils/anonymize';
 import { json } from '../utils/http';
 
 const LIMIT = 50;
+
+function normalizeGame(game: string | null): GameType {
+  if (game === 'chess') return 'chess';
+  if (game === 'solitaire') return 'solitaire';
+  if (game === 'game2048') return 'game2048';
+  return 'puzzle';
+}
 
 export async function getLeaderboard(req: Request): Promise<Response> {
   const url = new URL(req.url);
@@ -16,7 +23,12 @@ export async function getLeaderboard(req: Request): Promise<Response> {
     .where('completion_time_ms', 'is not', null)
     .orderBy('completion_time_ms', 'asc');
 
-  if (gameFilter === 'puzzle' || gameFilter === 'chess') {
+  if (
+    gameFilter === 'puzzle' ||
+    gameFilter === 'chess' ||
+    gameFilter === 'solitaire' ||
+    gameFilter === 'game2048'
+  ) {
     query = query.where('game', '=', gameFilter);
   }
 
@@ -26,7 +38,7 @@ export async function getLeaderboard(req: Request): Promise<Response> {
     entries: rows.map((row, index) => ({
       rank: index + 1,
       email: anonymizeEmail(row.email),
-      game: row.game === 'chess' ? 'chess' : 'puzzle',
+      game: normalizeGame(row.game),
       completionTimeMs: row.completion_time_ms!,
       completedAt: row.redeemed_at!,
     })),

@@ -79,6 +79,8 @@ const server = Bun.serve({
     '/play': indexPageHtml,
     '/play/puzzle': indexPageHtml,
     '/play/chess': indexPageHtml,
+    '/play/solitaire': indexPageHtml,
+    '/play/2048': indexPageHtml,
     '/leaderboard': indexPageHtml,
     '/solve': indexPageHtml,
 
