@@ -31,6 +31,12 @@ export function useUndoRedo<T>(
     setHistoryVersion(v => v + 1);
   }, [enabled, getSnapshot, maxHistory]);
 
+  const popHistory = useCallback(() => {
+    if (!enabled) return;
+    pastRef.current.pop();
+    setHistoryVersion(v => v + 1);
+  }, [enabled]);
+
   const undo = useCallback(() => {
     if (!enabled) return;
     const past = pastRef.current;
@@ -61,7 +67,7 @@ export function useUndoRedo<T>(
   const canUndo = enabled && pastRef.current.length > 0;
   const canRedo = enabled && futureRef.current.length > 0;
 
-  return { pushHistory, undo, redo, clearHistory, canUndo, canRedo };
+  return { pushHistory, popHistory, undo, redo, clearHistory, canUndo, canRedo };
 }
 
 export function useUndoRedoKeyboard(

@@ -162,7 +162,7 @@ export function ChessMatch({
 
   const historyEnabled =
     outcome === 'playing' || outcome === 'lost' || outcome === 'draw';
-  const { pushHistory, undo, redo, canUndo, canRedo } = useUndoRedo(
+  const { pushHistory, popHistory, undo, redo, canUndo, canRedo } = useUndoRedo(
     getSnapshot,
     applySnapshot,
     { enabled: historyEnabled }
@@ -215,6 +215,8 @@ export function ChessMatch({
         setStartedAt(start);
       }
 
+      pushHistory();
+
       let move;
       try {
         move = game.move({
@@ -223,11 +225,13 @@ export function ChessMatch({
           promotion: 'q',
         });
       } catch {
+        popHistory();
         return false;
       }
-      if (!move) return false;
-
-      pushHistory();
+      if (!move) {
+        popHistory();
+        return false;
+      }
 
       const nextFen = game.fen();
       setFen(nextFen);
@@ -305,7 +309,7 @@ export function ChessMatch({
       persist({ fen: afterBotFen, startedAt: start, outcome: 'playing' });
       return true;
     },
-    [finishWin, outcome, persist, pushHistory, startedAt]
+    [finishWin, outcome, persist, pushHistory, popHistory, startedAt]
   );
 
   const onPieceDrop = useCallback(
