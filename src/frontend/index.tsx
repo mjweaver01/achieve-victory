@@ -21,7 +21,7 @@ function App() {
         <Route path="/play/solitaire" element={<SolitairePage />} />
         <Route path="/play/2048" element={<Game2048Page />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
-        <Route path="/solve" element={<AdminPage />} />
+        <Route path="/analytics" element={<AdminPage />} />
         <Route path="/print" element={<PrintCodePage />} />
       </Routes>
     </BrowserRouter>

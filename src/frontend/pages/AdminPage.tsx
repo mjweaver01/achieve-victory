@@ -26,7 +26,7 @@ export function AdminPage() {
   async function load() {
     setError('');
     try {
-      const res = await fetch(`/api/admin?key=${encodeURIComponent(key)}`);
+      const res = await fetch(`/api/analytics?key=${encodeURIComponent(key)}`);
       const data = (await res.json()) as AdminStatsResponse & {
         error?: string;
       };
@@ -42,11 +42,11 @@ export function AdminPage() {
   }
 
   return (
-    <Layout title="Solve" subtitle="Internal tools — key required.">
+    <Layout title="Analytics" subtitle="Internal stats — key required.">
       <div className="card">
         <input
           type="password"
-          placeholder="Solve key"
+          placeholder="Analytics key"
           value={key}
           onChange={e => setKey(e.target.value)}
         />

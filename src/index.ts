@@ -89,7 +89,7 @@ const server = Bun.serve({
     '/play/solitaire': indexPageHtml,
     '/play/2048': indexPageHtml,
     '/leaderboard': indexPageHtml,
-    '/solve': indexPageHtml,
+    '/analytics': indexPageHtml,
     '/print': indexPageHtml,
 
     '/api/start': {
@@ -100,7 +100,7 @@ const server = Bun.serve({
     },
     '/api/dev/complete': { POST: postDevComplete },
     '/api/leaderboard': { GET: getLeaderboard },
-    '/api/admin': { GET: getAdmin },
+    '/api/analytics': { GET: getAdmin },
 
     '/images/*': req => {
       const file = servePublicFile(new URL(req.url).pathname);

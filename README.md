@@ -38,7 +38,7 @@ Without `SHOPIFY_*` in dev, codes are mocked (`MADEON-DEV-…` in the terminal).
 | `DATABASE_URL` | Postgres (Railway). Omit for local SQLite at `DATABASE_PATH` |
 | `SHOPIFY_ADMIN_TOKEN`, `SHOPIFY_SHOP_DOMAIN` | Discount minting |
 | `SHOPIFY_DISCOUNT_PERCENT` | Default `10` |
-| `ADMIN_SECRET` | `/solve` stats dashboard |
+| `ADMIN_SECRET` | `/analytics` stats dashboard |
 | `BUN_PUBLIC_STORE_URL` | Checkout links + QR (default `https://madeon.store`) |
 
 ## API
@@ -48,7 +48,7 @@ Without `SHOPIFY_*` in dev, codes are mocked (`MADEON-DEV-…` in the terminal).
 | `/api/start` | POST | `{ email, game? }` → `{ sessionId }` |
 | `/api/complete` | POST | `{ sessionId, email, completionTimeMs, game?, score? }` → `{ code, offerText }` |
 | `/api/leaderboard` | GET | `?game=puzzle\|chess\|solitaire\|game2048` |
-| `/api/admin` | GET | `x-admin-secret` or `?key=` |
+| `/api/analytics` | GET | `x-admin-secret` or `?key=` |
 | `/api/dev/complete` | POST | Same as complete; **404 in production** |
 
 One code per email. Replay visits reuse the same code.
@@ -56,7 +56,7 @@ One code per email. Replay visits reuse the same code.
 ## Local dev shortcuts
 
 - **Dev: skip to code** — toolbar button on `localhost` only.
-- **Stats** — `/solve` with `ADMIN_SECRET`.
+- **Stats** — `/analytics` with `ADMIN_SECRET`.
 - **Skip via curl** (non-production):
 
 ```bash
