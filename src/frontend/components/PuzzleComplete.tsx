@@ -23,7 +23,6 @@ export function PuzzleComplete({
   timeMs,
   footer,
 }: Props) {
-  const showLogo = status !== 'error';
   const body =
     status === 'submitting'
       ? message || SUBMITTING_MESSAGE
@@ -31,7 +30,6 @@ export function PuzzleComplete({
 
   return (
     <div className="puzzle-complete">
-      {showLogo ? (
         <img
           src="/images/logo.gif"
           alt=""
@@ -39,7 +37,6 @@ export function PuzzleComplete({
           width={320}
           height={320}
         />
-      ) : null}
       {timeMs != null && Number.isFinite(timeMs) ? (
         <p className="timer">Time: {formatDuration(timeMs)}</p>
       ) : null}
@@ -48,10 +45,11 @@ export function PuzzleComplete({
       ) : null}
       {status !== 'submitting' && code ? (
         <>
-          <p className="reward-code">
-            Your code: <strong>{code}</strong>
-          </p>
-          {offerText ? <p className="reward-offer">Offer: {offerText}</p> : null}
+          <p className="reward-code-title">Your code</p>
+          <h2 className="reward-code">
+            {code}
+          </h2>
+          {offerText ? <p className="reward-offer">{offerText}</p> : null}
         </>
       ) : null}
       {footer}

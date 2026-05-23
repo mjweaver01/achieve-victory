@@ -63,13 +63,6 @@ a:hover {
   text-align: center;
 }
 
-.card {
-  /* background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 1rem;
-  padding: 1.5rem; */
-}
-
 h1,
 h2,
 .nav,
@@ -200,23 +193,35 @@ button.secondary:hover {
 }
 
 .puzzle-complete .secondary {
-  margin-top: 1rem;
+  margin-top: 0;
+}
+
+.puzzle-complete-footer {
+  display: grid;
+  align-items: flex-start;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+  
+.reward-code-title {
+  margin: 2rem 0 0;
+  font-size: 1rem;
 }
 
 .reward-code {
-  margin: 0.75rem 0 0;
-  font-size: 1.1rem;
+  margin: 0.25rem 0 1rem;
+  font-size: 3rem;
   color: var(--accent);
 }
 
 .reward-offer {
-  margin: 0.35rem 0 0;
+  margin: 0.25rem 0 2rem;
   font-size: 0.9rem;
   color: var(--muted);
 }
 
 .resend-code-notice {
-  margin: 0.5rem 0 0;
+  margin: 0.25rem 0 0;
   font-size: 0.85rem;
   color: var(--muted);
   line-height: 1.35;
@@ -228,14 +233,6 @@ button.secondary:hover {
   gap: 1rem;
   margin-bottom: 2rem;
   font-size: 1.15rem;
-}
-
-.dev-skip-hint {
-  margin: 0.5rem 0 0;
-  font-size: 0.85rem;
-  color: var(--muted);
-  line-height: 1.35;
-  text-align: center;
 }
 
 .puzzle-grid {

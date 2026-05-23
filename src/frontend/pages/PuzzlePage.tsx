@@ -102,7 +102,7 @@ export function PuzzlePage() {
             offerText={offerText}
             timeMs={savedPuzzle?.completionTimeMs}
             footer={
-              <>
+              <div className="puzzle-complete-footer">
                 {status === 'done' ? (
                   <ResendCodeButton
                     onClick={() => void resendCode()}
@@ -111,7 +111,7 @@ export function PuzzlePage() {
                   />
                 ) : null}
                 <StartOverButton onClick={handleStartOver} />
-              </>
+              </div>
             }
           />
         )}

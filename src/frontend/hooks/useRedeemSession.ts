@@ -5,7 +5,6 @@ import {
   saveRedeemProgress,
   type RedeemProgress,
 } from '../utils/gameProgress';
-import { getDevAdminSecret } from '../utils/devAdmin';
 import { getStoredSession } from '../utils/session';
 
 type Status = RedeemProgress['status'];
@@ -153,8 +152,7 @@ export function useRedeemSession() {
   const devComplete = useCallback(
     async (completionTimeMs: number, score?: number) => {
       const current = getStoredSession();
-      const secret = getDevAdminSecret();
-      if (!current || !secret) return;
+      if (!current) return;
 
       setDevSkipBusy(true);
       setStatus('submitting');
@@ -164,10 +162,7 @@ export function useRedeemSession() {
       try {
         const res = await fetch('/api/dev/complete', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-admin-secret': secret,
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             sessionId: current.sessionId,
             email: current.email,

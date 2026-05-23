@@ -97,7 +97,7 @@ export function ChessPage() {
             code={code}
             offerText={offerText}
             footer={
-              <>
+              <div className="puzzle-complete-footer">
                 {status === 'done' ? (
                   <ResendCodeButton
                     onClick={() => void resendCode()}
@@ -106,7 +106,7 @@ export function ChessPage() {
                   />
                 ) : null}
                 <StartOverButton onClick={handleStartOver} />
-              </>
+              </div>
             }
           />
         )}

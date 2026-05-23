@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { storeDevAdminSecret } from '../utils/devAdmin';
 import {
   Bar,
   BarChart,
@@ -21,7 +20,6 @@ export function AdminPage() {
     const fromUrl = new URLSearchParams(window.location.search).get('key');
     if (fromUrl) {
       setKey(fromUrl);
-      storeDevAdminSecret(fromUrl);
     }
   }, []);
 
@@ -38,7 +36,6 @@ export function AdminPage() {
         return;
       }
       setStats(data);
-      storeDevAdminSecret(key);
     } catch {
       setError('Network error');
     }
