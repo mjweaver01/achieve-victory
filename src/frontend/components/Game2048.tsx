@@ -5,7 +5,7 @@ import {
   useUndoRedo,
   useUndoRedoKeyboard,
 } from '../hooks/useUndoRedo';
-import type { Game2048Progress } from '../utils/gameProgress';
+import type { Game2048Progress } from '../../types/progress';
 import { formatDuration } from '../utils/time';
 
 const SIZE = 4;

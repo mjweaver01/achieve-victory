@@ -1,17 +1,11 @@
 import { getDb } from '../db/index';
-import type { GameType, LeaderboardResponse } from '../types/api';
+import { isGameType, normalizeGame } from '../lib/games';
+import type { LeaderboardResponse } from '../types/api';
 import { anonymizeEmail } from '../utils/anonymize';
 import { toEpochMs } from '../utils/epoch';
 import { json } from '../utils/http';
 
 const LIMIT = 50;
-
-function normalizeGame(game: string | null): GameType {
-  if (game === 'chess') return 'chess';
-  if (game === 'solitaire') return 'solitaire';
-  if (game === 'game2048') return 'game2048';
-  return 'puzzle';
-}
 
 export async function getLeaderboard(req: Request): Promise<Response> {
   const url = new URL(req.url);
@@ -24,12 +18,7 @@ export async function getLeaderboard(req: Request): Promise<Response> {
     .where('completion_time_ms', 'is not', null)
     .orderBy('completion_time_ms', 'asc');
 
-  if (
-    gameFilter === 'puzzle' ||
-    gameFilter === 'chess' ||
-    gameFilter === 'solitaire' ||
-    gameFilter === 'game2048'
-  ) {
+  if (isGameType(gameFilter)) {
     query = query.where('game', '=', gameFilter);
   }
 

@@ -8,11 +8,11 @@ import { PrintDiscountCodeButton } from '../components/PrintDiscountCodeButton';
 import { StartOverButton } from '../components/StartOverButton';
 import { useRedeemSession } from '../hooks/useRedeemSession';
 import type { UndoRedoActions } from '../hooks/useUndoRedo';
+import type { PuzzleProgress } from '../../types/progress';
 import {
   clearGameState,
   loadProgress,
   savePuzzleProgress,
-  type PuzzleProgress,
 } from '../utils/gameProgress';
 import { gamePath, getStoredSession } from '../utils/session';
 

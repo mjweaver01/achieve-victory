@@ -1,5 +1,5 @@
 import { sql, type Kysely } from 'kysely';
-import type { DB } from './types';
+import type { DB } from '../types/db';
 
 const baseMigrations = [
   `CREATE TABLE IF NOT EXISTS sessions (

@@ -1,19 +1,11 @@
-export type GameType = 'puzzle' | 'chess' | 'solitaire' | 'game2048';
-
-export type StoredSession = {
-  sessionId: string;
-  email: string;
-  game: GameType;
-};
-
+import { gamePath, normalizeGame } from '../../lib/games';
+import type { StoredSession } from '../../types/session';
 import { clearProgress } from './gameProgress';
+
+export { gamePath };
 
 const SESSION_KEY = 'madeon_session';
 const LAST_EMAIL_KEY = 'madeon_last_email';
-
-export function gamePath(game: GameType): string {
-  return game === 'game2048' ? '/play/2048' : `/play/${game}`;
-}
 
 export function getStoredSession(): StoredSession | null {
   const raw = sessionStorage.getItem(SESSION_KEY);
@@ -23,12 +15,7 @@ export function getStoredSession(): StoredSession | null {
     if (!data.sessionId || !data.email) return null;
     return {
       ...data,
-      game:
-        data.game === 'chess' ||
-        data.game === 'solitaire' ||
-        data.game === 'game2048'
-          ? data.game
-          : 'puzzle',
+      game: normalizeGame(data.game),
     };
   } catch {
     return null;
@@ -44,7 +31,7 @@ export function getLastEmail(): string {
 export function storeSession(
   sessionId: string,
   email: string,
-  game: GameType
+  game: StoredSession['game']
 ): void {
   const existing = getStoredSession();
   if (existing?.sessionId !== sessionId) {

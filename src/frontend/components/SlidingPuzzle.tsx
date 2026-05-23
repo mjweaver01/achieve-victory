@@ -5,7 +5,7 @@ import {
   useUndoRedo,
   useUndoRedoKeyboard,
 } from '../hooks/useUndoRedo';
-import type { PuzzleProgress } from '../utils/gameProgress';
+import type { PuzzleProgress } from '../../types/progress';
 import {
   applyPuzzleMove,
   createFreshPuzzleBoard,

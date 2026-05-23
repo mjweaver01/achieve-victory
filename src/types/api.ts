@@ -1,4 +1,4 @@
-export type GameType = 'puzzle' | 'chess' | 'solitaire' | 'game2048';
+import type { GameType } from './game';
 
 export type StartResponse = { sessionId: string };
 

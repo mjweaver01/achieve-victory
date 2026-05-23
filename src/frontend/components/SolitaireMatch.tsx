@@ -11,7 +11,7 @@ import {
   useUndoRedo,
   useUndoRedoKeyboard,
 } from '../hooks/useUndoRedo';
-import type { SolitaireProgress } from '../utils/gameProgress';
+import type { SolitaireProgress } from '../../types/progress';
 import { formatDuration } from '../utils/time';
 import { GameToolbar, GameToolbarButton } from './GameToolbar';
 

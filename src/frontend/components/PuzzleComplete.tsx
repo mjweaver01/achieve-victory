@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { RedeemProgress } from '../utils/gameProgress';
+import type { RedeemProgress } from '../../types/progress';
 import { formatDuration } from '../utils/time';
 
 type RedeemStatus = Exclude<RedeemProgress['status'], 'playing'>;

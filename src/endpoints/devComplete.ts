@@ -15,5 +15,5 @@ export async function postDevComplete(req: Request): Promise<Response> {
     return error('Invalid JSON body', 400);
   }
 
-  return redeemSession(body);
+  return redeemSession(body, { skipTimingValidation: true });
 }

@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import {
-  loadProgress,
-  saveRedeemProgress,
-  type RedeemProgress,
-} from '../utils/gameProgress';
+import type { RedeemProgress } from '../../types/progress';
+import { loadProgress, saveRedeemProgress } from '../utils/gameProgress';
 import { getStoredSession } from '../utils/session';
 
 type Status = RedeemProgress['status'];

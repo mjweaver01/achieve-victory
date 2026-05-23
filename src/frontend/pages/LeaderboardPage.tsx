@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Layout } from '../components/Layout';
-import type { GameType, LeaderboardResponse } from '../../types/api';
+import type { GameType, LeaderboardResponse } from '../../types';
+import { gameLabel } from '../../lib/games';
 import { toEpochMs } from '../../utils/epoch';
 import { useVirtualWindow } from '../utils/useVirtualWindow';
 import { formatDuration } from '../utils/time';
@@ -13,14 +14,6 @@ function formatDate(ts: number | string): string {
   if (ms <= 0) return '—';
   return new Date(ms).toLocaleDateString();
 }
-
-function gameLabel(game: GameType): string {
-  if (game === 'chess') return 'Chess';
-  if (game === 'solitaire') return 'Solitaire';
-  if (game === 'game2048') return '2048';
-  return 'Puzzle';
-}
-
 type SortBy = 'time' | 'date' | 'player' | 'game';
 type SortOrder = 'asc' | 'desc';
 

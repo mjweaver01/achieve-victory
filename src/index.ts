@@ -82,16 +82,6 @@ const server = Bun.serve({
   // Railway expects services to listen on all interfaces.
   hostname: isProduction ? '0.0.0.0' : 'localhost',
   routes: {
-    '/': indexPageHtml,
-    '/play': indexPageHtml,
-    '/play/puzzle': indexPageHtml,
-    '/play/chess': indexPageHtml,
-    '/play/solitaire': indexPageHtml,
-    '/play/2048': indexPageHtml,
-    '/leaderboard': indexPageHtml,
-    '/analytics': indexPageHtml,
-    '/print': indexPageHtml,
-
     '/api/start': {
       POST: isProduction ? withRateLimit(postStart) : postStart,
     },
@@ -110,6 +100,8 @@ const server = Bun.serve({
       const file = servePublicFile(new URL(req.url).pathname);
       return file ?? new Response('Not Found', { status: 404 });
     },
+
+    '/*': indexPageHtml,
   },
   ...(isProduction
     ? {}

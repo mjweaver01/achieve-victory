@@ -1,18 +1,20 @@
 import { getDb } from '../db/index';
 import { fulfillReward, isRewardSystemConfigured } from '../services/rewards';
 import { getDiscountOfferText } from '../services/discount';
-import type { CompleteRequest, CompleteResponse, GameType } from '../types/api';
+import { normalizeGame } from '../lib/games';
+import type { CompleteRequest, CompleteResponse } from '../types/api';
+import { validateCompletion } from '../utils/completionValidation';
 import { validateEmail } from '../utils/emailValidation';
 import { error, json } from '../utils/http';
 
-function normalizeGame(game: CompleteRequest['game']): GameType {
-  if (game === 'chess') return 'chess';
-  if (game === 'solitaire') return 'solitaire';
-  if (game === 'game2048') return 'game2048';
-  return 'puzzle';
-}
+type RedeemOptions = {
+  skipTimingValidation?: boolean;
+};
 
-export async function redeemSession(body: CompleteRequest): Promise<Response> {
+export async function redeemSession(
+  body: CompleteRequest,
+  opts?: RedeemOptions
+): Promise<Response> {
   const offerText = getDiscountOfferText();
   const { sessionId, completionTimeMs, score } = body;
   if (!sessionId || !body.email || completionTimeMs == null) {
@@ -42,6 +44,22 @@ export async function redeemSession(body: CompleteRequest): Promise<Response> {
     return error('Session already redeemed', 409);
   }
 
+  const game = normalizeGame(session.game ?? body.game);
+  const requestedGame = body.game == null ? null : normalizeGame(body.game);
+  if (requestedGame != null && requestedGame !== game) {
+    return error('Game does not match session', 400);
+  }
+
+  const timing = validateCompletion({
+    game,
+    completionTimeMs,
+    sessionStartedAt: session.started_at,
+    skipTiming: opts?.skipTimingValidation,
+  });
+  if (!timing.ok) {
+    return error(timing.reason, 400);
+  }
+
   const existingCode = await db
     .selectFrom('codes')
     .selectAll()
@@ -56,7 +74,7 @@ export async function redeemSession(body: CompleteRequest): Promise<Response> {
   await db
     .updateTable('sessions')
     .set({
-      game: normalizeGame(body.game),
+      game,
       redeemed_at: now,
       completion_time_ms: completionTimeMs,
       score: score ?? null,

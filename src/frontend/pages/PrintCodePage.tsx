@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { QRCode } from 'react-qr-code';
 import { Link, useSearchParams } from 'react-router';
-import { STORE_URL } from '../config';
+import { STORE_URL } from '../../constants/store';
 import { gamePath, getStoredSession } from '../utils/session';
 
 function discountUrl(storeUrl: string, code: string): string {

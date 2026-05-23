@@ -18,7 +18,7 @@ import {
   useUndoRedo,
   useUndoRedoKeyboard,
 } from '../hooks/useUndoRedo';
-import type { ChessProgress } from '../utils/gameProgress';
+import type { ChessProgress } from '../../types/progress';
 import { formatDuration } from '../utils/time';
 
 type Outcome = ChessProgress['outcome'];

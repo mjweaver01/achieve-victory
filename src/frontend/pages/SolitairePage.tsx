@@ -6,11 +6,11 @@ import { PrintDiscountCodeButton } from '../components/PrintDiscountCodeButton';
 import { SolitaireMatch } from '../components/SolitaireMatch';
 import { StartOverButton } from '../components/StartOverButton';
 import { useRedeemSession } from '../hooks/useRedeemSession';
+import type { SolitaireProgress } from '../../types/progress';
 import {
   clearGameState,
   loadProgress,
   saveSolitaireProgress,
-  type SolitaireProgress,
 } from '../utils/gameProgress';
 import { gamePath, getStoredSession } from '../utils/session';
 

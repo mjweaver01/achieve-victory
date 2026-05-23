@@ -8,7 +8,7 @@ import {
   YAxis,
 } from 'recharts';
 import { Layout } from '../components/Layout';
-import type { AdminStatsResponse } from '../../types/api';
+import type { AdminStatsResponse } from '../../types';
 import { formatDuration } from '../utils/time';
 
 export function AdminPage() {

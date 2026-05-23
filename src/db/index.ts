@@ -4,7 +4,7 @@ import { BunSqliteDialect } from 'kysely-bun-sqlite';
 import { mkdirSync } from 'fs';
 import path from 'path';
 import pg from 'pg';
-import type { DB } from './types';
+import type { DB } from '../types/db';
 import { runMigrations } from './schema';
 
 const { Pool, types } = pg;

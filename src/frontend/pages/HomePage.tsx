@@ -1,13 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Layout } from '../components/Layout';
-import type { StartResponse } from '../../types/api';
-import {
-  gamePath,
-  getLastEmail,
-  storeSession,
-  type GameType,
-} from '../utils/session';
+import type { GameType, StartResponse } from '../../types';
+import { gamePath, getLastEmail, storeSession } from '../utils/session';
 
 export function HomePage() {
   const navigate = useNavigate();

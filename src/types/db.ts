@@ -1,9 +1,11 @@
 import type { Insertable, Selectable, Updateable } from 'kysely';
 
+import type { GameType } from './game';
+
 export interface SessionsTable {
   id: string;
   email: string;
-  game: 'puzzle' | 'chess' | 'solitaire' | 'game2048' | null;
+  game: GameType | null;
   started_at: number;
   redeemed_at: number | null;
   completion_time_ms: number | null;
