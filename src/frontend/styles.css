@@ -209,6 +209,12 @@ button.secondary:hover {
   color: var(--text);
 }
 
+.reward-offer {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
 .resend-code-notice {
   margin: 0.5rem 0 0;
   font-size: 0.85rem;

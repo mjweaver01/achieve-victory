@@ -1,4 +1,5 @@
 import { customAlphabet } from 'nanoid';
+import { getDiscountPercent } from './discount';
 
 const nanoid = customAlphabet('ABCDEFGHJKLMNPQRSTUVWXYZ23456789', 8);
 
@@ -70,7 +71,7 @@ export async function findOrCreateCustomer(
 export async function mintDiscountCode(
   customerId: string
 ): Promise<string> {
-  const percent = Number(process.env.SHOPIFY_DISCOUNT_PERCENT ?? '10');
+  const percent = getDiscountPercent();
   const value = `-${percent}.0`;
 
   const ruleRes = await shopifyFetch('/price_rules.json', {

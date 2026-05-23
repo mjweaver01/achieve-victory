@@ -22,6 +22,7 @@ export function PuzzlePage() {
     status,
     message,
     code,
+    offerText,
     redeem,
     resetRedeem,
     resendCode,
@@ -98,6 +99,7 @@ export function PuzzlePage() {
             status={status}
             message={message}
             code={code}
+            offerText={offerText}
             timeMs={savedPuzzle?.completionTimeMs}
             footer={
               <>

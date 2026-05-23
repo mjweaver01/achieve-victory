@@ -22,6 +22,7 @@ export function ChessPage() {
     status,
     message,
     code,
+    offerText,
     redeem,
     resetRedeem,
     resendCode,
@@ -94,6 +95,7 @@ export function ChessPage() {
             status={status}
             message={message}
             code={code}
+            offerText={offerText}
             footer={
               <>
                 {status === 'done' ? (

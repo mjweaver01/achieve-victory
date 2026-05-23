@@ -10,6 +10,7 @@ type Props = {
   status: RedeemStatus;
   message?: string;
   code?: string;
+  offerText?: string;
   timeMs?: number;
   footer?: ReactNode;
 };
@@ -18,6 +19,7 @@ export function PuzzleComplete({
   status,
   message = '',
   code = '',
+  offerText = '',
   timeMs,
   footer,
 }: Props) {
@@ -45,9 +47,12 @@ export function PuzzleComplete({
         <p className={status === 'error' ? 'error' : undefined}>{body}</p>
       ) : null}
       {status !== 'submitting' && code ? (
-        <p className="reward-code">
-          Your code: <strong>{code}</strong>
-        </p>
+        <>
+          <p className="reward-code">
+            Your code: <strong>{code}</strong>
+          </p>
+          {offerText ? <p className="reward-offer">Offer: {offerText}</p> : null}
+        </>
       ) : null}
       {footer}
     </div>

@@ -4,6 +4,7 @@ import {
   isRewardSystemConfigured,
   RewardEmailDeliveryError,
 } from '../services/rewards';
+import { getDiscountOfferText } from '../services/discount';
 import type { CompleteRequest, CompleteResponse } from '../types/api';
 import { validateEmail } from '../utils/emailValidation';
 import { error, json } from '../utils/http';
@@ -11,6 +12,7 @@ import { error, json } from '../utils/http';
 export async function redeemSession(
   body: CompleteRequest
 ): Promise<Response> {
+  const offerText = getDiscountOfferText();
   const { sessionId, completionTimeMs, score } = body;
   if (!sessionId || !body.email || completionTimeMs == null) {
     return error('sessionId, email, and completionTimeMs are required', 400);
@@ -52,6 +54,7 @@ export async function redeemSession(
     return json({
       success: true,
       code: existingCode.code,
+      offerText,
     } satisfies CompleteResponse);
   }
 
@@ -87,7 +90,7 @@ export async function redeemSession(
       `[reward] code created for ${email} (session=${sessionId}, code=${code}, timeMs=${completionTimeMs})`
     );
 
-    return json({ success: true, code } satisfies CompleteResponse);
+    return json({ success: true, code, offerText } satisfies CompleteResponse);
   } catch (err) {
     if (err instanceof RewardEmailDeliveryError) {
       await db
@@ -105,7 +108,7 @@ export async function redeemSession(
       console.error(
         `[reward] email failed for ${email} (session=${sessionId}, code=${err.code}): ${err.message}`
       );
-      return json({ error: msg, code: err.code }, 502);
+      return json({ error: msg, code: err.code, offerText }, 502);
     }
 
     await db

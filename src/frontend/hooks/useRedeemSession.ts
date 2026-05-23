@@ -11,9 +11,23 @@ import { getStoredSession } from '../utils/session';
 type Status = RedeemProgress['status'];
 
 function initialRedeem(sessionId: string | undefined): RedeemProgress {
-  if (!sessionId) return { status: 'playing', message: '', code: undefined };
+  if (!sessionId) {
+    return {
+      status: 'playing',
+      message: '',
+      code: undefined,
+      offerText: undefined,
+    };
+  }
   const saved = loadProgress(sessionId)?.redeem;
-  return saved ?? { status: 'playing', message: '', code: undefined };
+  return (
+    saved ?? {
+      status: 'playing',
+      message: '',
+      code: undefined,
+      offerText: undefined,
+    }
+  );
 }
 
 export function useRedeemSession() {
@@ -28,14 +42,22 @@ export function useRedeemSession() {
     () => initialRedeem(sessionId).message
   );
   const [code, setCode] = useState(() => initialRedeem(sessionId).code ?? '');
+  const [offerText, setOfferText] = useState(
+    () => initialRedeem(sessionId).offerText ?? ''
+  );
   const [resendBusy, setResendBusy] = useState(false);
   const [resendNotice, setResendNotice] = useState('');
   const [devSkipBusy, setDevSkipBusy] = useState(false);
 
   useEffect(() => {
     if (!sessionId) return;
-    saveRedeemProgress(sessionId, { status, message, code: code || undefined });
-  }, [sessionId, status, message, code]);
+    saveRedeemProgress(sessionId, {
+      status,
+      message,
+      code: code || undefined,
+      offerText: offerText || undefined,
+    });
+  }, [sessionId, status, message, code, offerText]);
 
   const redeem = useCallback(
     async (completionTimeMs: number, score?: number) => {
@@ -48,6 +70,7 @@ export function useRedeemSession() {
       setStatus('submitting');
       setMessage('');
       setCode('');
+      setOfferText('');
       try {
         const res = await fetch('/api/complete', {
           method: 'POST',
@@ -59,17 +82,23 @@ export function useRedeemSession() {
             score,
           }),
         });
-        const data = (await res.json()) as { error?: string; code?: string };
+        const data = (await res.json()) as {
+          error?: string;
+          code?: string;
+          offerText?: string;
+        };
 
         if (!res.ok) {
           setStatus('error');
           setCode(data.code ?? '');
+          setOfferText(data.offerText ?? '');
           setMessage(data.error ?? 'Could not redeem reward');
           return;
         }
 
         setStatus('done');
         setCode(data.code ?? '');
+        setOfferText(data.offerText ?? '');
         setMessage('Check your inbox for your discount code.');
       } catch {
         setStatus('error');
@@ -83,6 +112,7 @@ export function useRedeemSession() {
     setStatus('playing');
     setMessage('');
     setCode('');
+    setOfferText('');
     setResendNotice('');
   }, []);
 
@@ -130,6 +160,7 @@ export function useRedeemSession() {
       setStatus('submitting');
       setMessage('');
       setCode('');
+      setOfferText('');
       try {
         const res = await fetch('/api/dev/complete', {
           method: 'POST',
@@ -144,17 +175,23 @@ export function useRedeemSession() {
             score,
           }),
         });
-        const data = (await res.json()) as { error?: string; code?: string };
+        const data = (await res.json()) as {
+          error?: string;
+          code?: string;
+          offerText?: string;
+        };
 
         if (!res.ok) {
           setStatus('error');
           setCode(data.code ?? '');
+          setOfferText(data.offerText ?? '');
           setMessage(data.error ?? 'Dev complete failed');
           return;
         }
 
         setStatus('done');
         setCode(data.code ?? '');
+        setOfferText(data.offerText ?? '');
         setMessage('Check your inbox for your discount code.');
       } catch {
         setStatus('error');
@@ -170,6 +207,7 @@ export function useRedeemSession() {
     status,
     message,
     code,
+    offerText,
     redeem,
     resetRedeem,
     resendCode,
