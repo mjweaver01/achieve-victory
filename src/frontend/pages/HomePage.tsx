@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Layout } from '../components/Layout';
 import type { GameType, StartResponse } from '../../types';
@@ -6,13 +6,23 @@ import { gamePath, getLastEmail, storeSession } from '../utils/session';
 
 export function HomePage() {
   const navigate = useNavigate();
+  const formRef = useRef<HTMLFormElement>(null);
   const [email, setEmail] = useState(() => getLastEmail());
   const [game, setGame] = useState<GameType>('puzzle');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function startGame(selectedGame: GameType) {
+    if (loading) return;
+
+    setGame(selectedGame);
+
+    const form = formRef.current;
+    if (form && !form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
     setError('');
     setLoading(true);
 
@@ -20,7 +30,7 @@ export function HomePage() {
       const res = await fetch('/api/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, game }),
+        body: JSON.stringify({ email, game: selectedGame }),
       });
       const data = (await res.json()) as StartResponse & { error?: string };
 
@@ -31,8 +41,8 @@ export function HomePage() {
 
       if ('sessionId' in data) {
         const normalized = email.trim().toLowerCase();
-        storeSession(data.sessionId, normalized, game);
-        navigate(gamePath(game));
+        storeSession(data.sessionId, normalized, selectedGame);
+        navigate(gamePath(selectedGame));
       }
     } catch {
       setError('Network error — try again.');
@@ -41,13 +51,22 @@ export function HomePage() {
     }
   }
 
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    void startGame(game);
+  }
+
+  function handleGameDoubleClick(selectedGame: GameType) {
+    void startGame(selectedGame);
+  }
+
   return (
     <Layout
       title="ACHIEVE VICTORY"
       subtitle="Enter your email, pick a game, and earn your discount code."
     >
       <div className="card">
-        <form onSubmit={handleSubmit}>
+        <form ref={formRef} onSubmit={handleSubmit}>
           <label htmlFor="email" className="field-label">
             Email
           </label>
@@ -63,7 +82,10 @@ export function HomePage() {
 
           <p className="field-label">Choose your game</p>
           <div className="game-picker">
-            <label className="game-picker-option">
+            <label
+              className="game-picker-option"
+              onDoubleClick={() => handleGameDoubleClick('puzzle')}
+            >
               <input
                 type="radio"
                 name="game"
@@ -83,7 +105,10 @@ export function HomePage() {
                 Slide the tiles, any solution wins
               </span>
             </label>
-            <label className="game-picker-option">
+            <label
+              className="game-picker-option"
+              onDoubleClick={() => handleGameDoubleClick('chess')}
+            >
               <input
                 type="radio"
                 name="game"
@@ -103,7 +128,10 @@ export function HomePage() {
                 Beat the computer by checkmate
               </span>
             </label>
-            <label className="game-picker-option">
+            <label
+              className="game-picker-option"
+              onDoubleClick={() => handleGameDoubleClick('solitaire')}
+            >
               <input
                 type="radio"
                 name="game"
@@ -123,7 +151,10 @@ export function HomePage() {
                 Aces Up: clear cards until only four remain
               </span>
             </label>
-            <label className="game-picker-option">
+            <label
+              className="game-picker-option"
+              onDoubleClick={() => handleGameDoubleClick('game2048')}
+            >
               <input
                 type="radio"
                 name="game"
