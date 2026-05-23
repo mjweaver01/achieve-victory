@@ -9,7 +9,18 @@ import {
 } from 'recharts';
 import { Layout } from '../components/Layout';
 import type { AdminStatsResponse } from '../../types';
+import { toEpochMs } from '../../utils/epoch';
+import { useVirtualWindow } from '../utils/useVirtualWindow';
 import { formatDuration } from '../utils/time';
+
+const ADMIN_ROW_HEIGHT = 41;
+const ADMIN_TABLE_COLUMNS = 3;
+
+function formatDate(ts: number | string): string {
+  const ms = toEpochMs(ts);
+  if (ms <= 0) return '—';
+  return new Date(ms).toLocaleString();
+}
 
 export function AdminPage() {
   const [key, setKey] = useState('');
@@ -40,6 +51,25 @@ export function AdminPage() {
       setError('Network error');
     }
   }
+
+  const topCompletions = stats?.topCompletions ?? [];
+  const { scrollRef, startIndex, endIndex, onScroll, scrollToTop } =
+    useVirtualWindow({
+      count: topCompletions.length,
+      rowHeight: ADMIN_ROW_HEIGHT,
+    });
+
+  useEffect(() => {
+    if (stats) scrollToTop();
+  }, [stats, scrollToTop]);
+
+  const virtualRows =
+    endIndex >= startIndex ? topCompletions.slice(startIndex, endIndex + 1) : [];
+  const topSpacerHeight = startIndex * ADMIN_ROW_HEIGHT;
+  const bottomSpacerHeight =
+    topCompletions.length > 0
+      ? (topCompletions.length - endIndex - 1) * ADMIN_ROW_HEIGHT
+      : 0;
 
   return (
     <Layout title="Analytics" subtitle="Internal stats — key required.">
@@ -85,24 +115,57 @@ export function AdminPage() {
 
           <div className="card card-stack">
             <h2>Top completions</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Email</th>
-                  <th>Time</th>
-                  <th>Code</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.topCompletions.map(row => (
-                  <tr key={row.email}>
-                    <td>{row.email}</td>
-                    <td>{formatDuration(row.completionTimeMs)}</td>
-                    <td>{row.code}</td>
+            <div
+              ref={scrollRef}
+              className="leaderboard-table-scroll"
+              onScroll={onScroll}
+            >
+              <table className="leaderboard-table admin-completions-table">
+                <colgroup>
+                  <col className="admin-col-email" />
+                  <col className="admin-col-time" />
+                  <col className="admin-col-completed" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Time</th>
+                    <th>Completed</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {topSpacerHeight > 0 ? (
+                    <tr aria-hidden="true" className="leaderboard-spacer">
+                      <td
+                        colSpan={ADMIN_TABLE_COLUMNS}
+                        style={{ height: topSpacerHeight }}
+                      />
+                    </tr>
+                  ) : null}
+                  {virtualRows.map((row, offset) => {
+                    const index = startIndex + offset;
+                    return (
+                      <tr key={`${row.completedAt}-${row.completionTimeMs}-${index}`}>
+                        <td>{row.email}</td>
+                        <td>{formatDuration(row.completionTimeMs)}</td>
+                        <td>{formatDate(row.completedAt)}</td>
+                      </tr>
+                    );
+                  })}
+                  {bottomSpacerHeight > 0 ? (
+                    <tr aria-hidden="true" className="leaderboard-spacer">
+                      <td
+                        colSpan={ADMIN_TABLE_COLUMNS}
+                        style={{ height: bottomSpacerHeight }}
+                      />
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
+            {topCompletions.length === 0 ? (
+              <p className="subtitle leaderboard-empty">No completions yet.</p>
+            ) : null}
           </div>
         </>
       ) : null}

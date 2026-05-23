@@ -1,6 +1,7 @@
 import { sql } from 'kysely';
 import { codesByDayExpr, getDb } from '../db/index';
 import type { AdminStatsResponse } from '../types/api';
+import { anonymizeEmail } from '../utils/anonymize';
 import { isAdminAuthorized } from '../utils/adminAuth';
 import { toEpochMs } from '../utils/epoch';
 import { error, json } from '../utils/http';
@@ -62,15 +63,10 @@ export async function getAdmin(req: Request): Promise<Response> {
 
   const topSessions = await db
     .selectFrom('sessions')
-    .innerJoin('codes', 'codes.email', 'sessions.email')
-    .select([
-      'sessions.email',
-      'sessions.completion_time_ms',
-      'sessions.redeemed_at',
-      'codes.code',
-    ])
-    .where('sessions.completion_time_ms', 'is not', null)
-    .orderBy('sessions.completion_time_ms', 'asc')
+    .select(['email', 'completion_time_ms', 'redeemed_at'])
+    .where('completion_time_ms', 'is not', null)
+    .where('redeemed_at', 'is not', null)
+    .orderBy('completion_time_ms', 'asc')
     .limit(25)
     .execute();
 
@@ -85,9 +81,8 @@ export async function getAdmin(req: Request): Promise<Response> {
       count: count(row.count),
     })),
     topCompletions: topSessions.map(row => ({
-      email: row.email,
+      email: anonymizeEmail(row.email),
       completionTimeMs: toEpochMs(row.completion_time_ms),
-      code: row.code,
       completedAt: toEpochMs(row.redeemed_at),
     })),
     dropOffCount,

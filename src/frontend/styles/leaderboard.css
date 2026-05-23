@@ -121,3 +121,21 @@
   text-align: center;
   margin: 0;
 }
+
+.admin-completions-table .admin-col-email {
+  width: 40%;
+}
+
+.admin-completions-table .admin-col-time {
+  width: 22%;
+}
+
+.admin-completions-table .admin-col-completed {
+  width: 38%;
+}
+
+.admin-completions-table td:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

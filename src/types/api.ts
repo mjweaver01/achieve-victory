@@ -39,7 +39,6 @@ export type AdminStatsResponse = {
   topCompletions: {
     email: string;
     completionTimeMs: number;
-    code: string;
     completedAt: number;
   }[];
   dropOffCount: number;
