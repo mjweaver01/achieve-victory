@@ -29,7 +29,7 @@ export function validateCompletion(params: {
   const wallClockMs = now - sessionStartedAt;
 
   if (wallClockMs > SESSION_MAX_AGE_MS) {
-    return { ok: false, reason: 'Session expired — start a new game' };
+    return { ok: false, reason: 'Session expired! Start a new game' };
   }
 
   if (completionTimeMs < GAME_MIN_COMPLETION_MS[game]) {

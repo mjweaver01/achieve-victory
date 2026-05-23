@@ -11,7 +11,7 @@ const LEADERBOARD_COLUMNS = 5;
 
 function formatDate(ts: number | string): string {
   const ms = toEpochMs(ts);
-  if (ms <= 0) return '—';
+  if (ms <= 0) return '-';
   return new Date(ms).toLocaleDateString();
 }
 type SortBy = 'time' | 'date' | 'player' | 'game';
@@ -77,7 +77,9 @@ export function LeaderboardPage() {
             );
           }
           if (sortBy === 'date') {
-            return factor * (toEpochMs(a.completedAt) - toEpochMs(b.completedAt));
+            return (
+              factor * (toEpochMs(a.completedAt) - toEpochMs(b.completedAt))
+            );
           }
           if (sortBy === 'player') {
             return factor * a.email.localeCompare(b.email);
@@ -187,13 +189,19 @@ export function LeaderboardPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={LEADERBOARD_COLUMNS} className="leaderboard-loading-cell">
+                  <td
+                    colSpan={LEADERBOARD_COLUMNS}
+                    className="leaderboard-loading-cell"
+                  >
                     <div
                       className="leaderboard-loading"
                       aria-busy="true"
                       aria-live="polite"
                     >
-                      <span className="leaderboard-spinner" aria-hidden="true" />
+                      <span
+                        className="leaderboard-spinner"
+                        aria-hidden="true"
+                      />
                       <span>Loading leaderboard…</span>
                     </div>
                   </td>

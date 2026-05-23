@@ -84,7 +84,7 @@ export async function redeemSession(
 
   if (existingCode) {
     console.log(
-      `[reward] code already exists for ${email} (session=${sessionId}, code=${existingCode.code}) — recording leaderboard entry`
+      `[reward] code already exists for ${email} (session=${sessionId}, code=${existingCode.code}), recording leaderboard entry`
     );
     return json({
       success: true,

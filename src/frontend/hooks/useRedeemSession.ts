@@ -105,7 +105,7 @@ export function useRedeemSession() {
         setMessage('You did it! Your code:');
       } catch {
         setStatus('error');
-        setMessage('Network error — try again.');
+        setMessage('Network error! Try again.');
       }
     },
     [navigate]
@@ -163,7 +163,7 @@ export function useRedeemSession() {
         setMessage('You did it! Your code:');
       } catch {
         setStatus('error');
-        setMessage('Network error — try again.');
+        setMessage('Network error! Try again.');
       } finally {
         setDevSkipBusy(false);
       }

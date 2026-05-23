@@ -18,7 +18,7 @@ const ADMIN_TABLE_COLUMNS = 3;
 
 function formatDate(ts: number | string): string {
   const ms = toEpochMs(ts);
-  if (ms <= 0) return '—';
+  if (ms <= 0) return '-';
   return new Date(ms).toLocaleString();
 }
 
@@ -64,7 +64,9 @@ export function AdminPage() {
   }, [stats, scrollToTop]);
 
   const virtualRows =
-    endIndex >= startIndex ? topCompletions.slice(startIndex, endIndex + 1) : [];
+    endIndex >= startIndex
+      ? topCompletions.slice(startIndex, endIndex + 1)
+      : [];
   const topSpacerHeight = startIndex * ADMIN_ROW_HEIGHT;
   const bottomSpacerHeight =
     topCompletions.length > 0
@@ -72,28 +74,57 @@ export function AdminPage() {
       : 0;
 
   return (
-    <Layout title="Analytics" subtitle="Internal stats — key required.">
-      <div className="card">
-        <input
-          type="password"
-          placeholder="Analytics key"
-          value={key}
-          onChange={e => setKey(e.target.value)}
-        />
-        <button className="primary" type="button" onClick={() => void load()}>
-          Load tools
-        </button>
-        {error ? <p className="error">{error}</p> : null}
-      </div>
+    <Layout title="Analytics" subtitle="Internal dashboard. Key required.">
+      {stats ? null : (
+        <div className="card">
+          <input
+            type="password"
+            placeholder="Analytics key"
+            value={key}
+            onChange={e => setKey(e.target.value)}
+          />
+          <button className="primary" type="button" onClick={() => void load()}>
+            Load tools
+          </button>
+          {error ? <p className="error">{error}</p> : null}
+        </div>
+      )}
 
       {stats ? (
         <>
-          <div className="card card-stack">
-            <p>Total plays: {stats.totalSessions}</p>
-            <p>Codes issued: {stats.totalCodes}</p>
-            <p>Completion rate: {(stats.completionRate * 100).toFixed(1)}%</p>
-            <p>Drop-off (started, not finished): {stats.dropOffCount}</p>
-            <p>Blocked email attempts: {stats.blockedAttempts}</p>
+          <div className="stat-grid">
+            <div className="stat-card">
+              <span className="stat-label">Total plays</span>
+              <span className="stat-value">
+                {stats.totalSessions.toLocaleString()}
+              </span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-label">Codes issued</span>
+              <span className="stat-value">
+                {stats.totalCodes.toLocaleString()}
+              </span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-label">Completion rate</span>
+              <span className="stat-value">
+                {(stats.completionRate * 100).toFixed(1)}
+                <span className="stat-unit">%</span>
+              </span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-label">Drop-off</span>
+              <span className="stat-value">
+                {stats.dropOffCount.toLocaleString()}
+              </span>
+              <span className="stat-hint">started, not finished</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-label">Blocked emails</span>
+              <span className="stat-value">
+                {stats.blockedAttempts.toLocaleString()}
+              </span>
+            </div>
           </div>
 
           <div className="card card-stack">
@@ -145,7 +176,9 @@ export function AdminPage() {
                   {virtualRows.map((row, offset) => {
                     const index = startIndex + offset;
                     return (
-                      <tr key={`${row.completedAt}-${row.completionTimeMs}-${index}`}>
+                      <tr
+                        key={`${row.completedAt}-${row.completionTimeMs}-${index}`}
+                      >
                         <td>{row.email}</td>
                         <td>{formatDuration(row.completionTimeMs)}</td>
                         <td>{formatDate(row.completedAt)}</td>

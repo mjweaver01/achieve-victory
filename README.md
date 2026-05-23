@@ -78,8 +78,8 @@ One code per email. Replay visits reuse the same code.
 
 ## Local dev shortcuts
 
-- **Dev: skip to code** — toolbar button on `localhost` only.
-- **Stats** — `/analytics` with `ADMIN_SECRET`.
+- **Dev: skip to code** toolbar button on `localhost` only.
+- **Stats** `/analytics` with `ADMIN_SECRET`.
 - **Skip via curl** (non-production):
 
 ```bash
