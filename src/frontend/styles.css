@@ -64,10 +64,10 @@ a:hover {
 }
 
 .card {
-  background: var(--surface);
+  /* background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 1rem;
-  padding: 1.5rem;
+  padding: 1.5rem; */
 }
 
 h1,
@@ -206,7 +206,7 @@ button.secondary:hover {
 .reward-code {
   margin: 0.75rem 0 0;
   font-size: 1.1rem;
-  color: var(--text);
+  color: var(--accent);
 }
 
 .reward-offer {
@@ -241,7 +241,6 @@ button.secondary:hover {
 .puzzle-grid {
   display: grid;
   gap: 4px;
-  width: min(100%, 320px);
   aspect-ratio: 1;
   margin: 1rem auto;
 }
