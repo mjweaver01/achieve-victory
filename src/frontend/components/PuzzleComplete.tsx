@@ -43,7 +43,6 @@ export function PuzzleComplete({
       ) : null}
       {status !== 'submitting' && code ? (
         <>
-          <p className="reward-code-title">Your code</p>
           <h2 className="reward-code">{code}</h2>
           {offerText ? <p className="reward-offer">{offerText}</p> : null}
         </>

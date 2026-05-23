@@ -179,6 +179,45 @@ function selectedCards(
   return tableau[selected.pileIndex]?.up.slice(selected.startIndex) ?? [];
 }
 
+type GameSnapshot = {
+  tableau: TableauPile[];
+  stock: Card[];
+  waste: Card[];
+  foundations: Foundations;
+  moves: number;
+};
+
+const MAX_HISTORY = 100;
+
+function cloneTableau(tableau: TableauPile[]): TableauPile[] {
+  return tableau.map(pile => ({ down: [...pile.down], up: [...pile.up] }));
+}
+
+function cloneFoundations(foundations: Foundations): Foundations {
+  return {
+    S: [...foundations.S],
+    H: [...foundations.H],
+    D: [...foundations.D],
+    C: [...foundations.C],
+  };
+}
+
+function createSnapshot(
+  tableau: TableauPile[],
+  stock: Card[],
+  waste: Card[],
+  foundations: Foundations,
+  moves: number
+): GameSnapshot {
+  return {
+    tableau: cloneTableau(tableau),
+    stock: [...stock],
+    waste: [...waste],
+    foundations: cloneFoundations(foundations),
+    moves,
+  };
+}
+
 export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
   const initial = useMemo(() => createInitialGame(), []);
   const base = isValidSaved(saved)
@@ -209,6 +248,9 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
   const [selected, setSelected] = useState<SelectedSource | null>(null);
   const [frozenElapsedMs, setFrozenElapsedMs] = useState(0);
   const wonRef = useRef(false);
+  const pastRef = useRef<GameSnapshot[]>([]);
+  const futureRef = useRef<GameSnapshot[]>([]);
+  const [historyVersion, setHistoryVersion] = useState(0);
 
   const elapsedMs = useElapsedTimer({
     startedAt,
@@ -259,12 +301,64 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
   }, [foundations, finishWin, startedAt]);
 
   const markMove = useCallback(() => {
+    pastRef.current.push(
+      createSnapshot(tableau, stock, waste, foundations, moves)
+    );
+    if (pastRef.current.length > MAX_HISTORY) pastRef.current.shift();
+    futureRef.current = [];
+    setHistoryVersion(v => v + 1);
     if (!startedAt) setStartedAt(Date.now());
     setMoves(prev => prev + 1);
     setStatusText('');
-  }, [startedAt]);
+  }, [tableau, stock, waste, foundations, moves, startedAt]);
 
   const clearSelection = useCallback(() => setSelected(null), []);
+
+  const applySnapshot = useCallback(
+    (snapshot: GameSnapshot) => {
+      setTableau(snapshot.tableau);
+      setStock(snapshot.stock);
+      setWaste(snapshot.waste);
+      setFoundations(snapshot.foundations);
+      setMoves(snapshot.moves);
+      setSelected(null);
+      setStatusText('');
+      if (outcome === 'won') {
+        wonRef.current = false;
+        setOutcome('playing');
+        setFrozenElapsedMs(0);
+      }
+    },
+    [outcome]
+  );
+
+  const undo = useCallback(() => {
+    if (outcome !== 'playing') return;
+    const past = pastRef.current;
+    if (past.length === 0) return;
+
+    futureRef.current.push(
+      createSnapshot(tableau, stock, waste, foundations, moves)
+    );
+    applySnapshot(past.pop()!);
+    setHistoryVersion(v => v + 1);
+  }, [outcome, tableau, stock, waste, foundations, moves, applySnapshot]);
+
+  const redo = useCallback(() => {
+    if (outcome !== 'playing') return;
+    const future = futureRef.current;
+    if (future.length === 0) return;
+
+    pastRef.current.push(
+      createSnapshot(tableau, stock, waste, foundations, moves)
+    );
+    applySnapshot(future.pop()!);
+    setHistoryVersion(v => v + 1);
+  }, [outcome, tableau, stock, waste, foundations, moves, applySnapshot]);
+
+  void historyVersion;
+  const canUndo = pastRef.current.length > 0 && outcome === 'playing';
+  const canRedo = futureRef.current.length > 0 && outcome === 'playing';
 
   const moveToFoundation = useCallback(
     (source: SelectedSource, targetSuit: Suit): boolean => {
@@ -477,11 +571,30 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
       if (event.key === 'Escape' && selected) {
         event.preventDefault();
         clearSelection();
+        return;
+      }
+      if (outcome !== 'playing') return;
+      const mod = event.metaKey || event.ctrlKey;
+      if (!mod || event.altKey) return;
+      const key = event.key.toLowerCase();
+      if (key === 'z' && !event.shiftKey) {
+        event.preventDefault();
+        undo();
+        return;
+      }
+      if (key === 'z' && event.shiftKey) {
+        event.preventDefault();
+        redo();
+        return;
+      }
+      if (key === 'y') {
+        event.preventDefault();
+        redo();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selected, clearSelection]);
+  }, [selected, clearSelection, outcome, undo, redo]);
 
   const onDraw = useCallback(() => {
     if (outcome !== 'playing') return;
@@ -510,6 +623,27 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
         {statusText ? (
           <span className="solitaire-status-note">{statusText}</span>
         ) : null}
+      </div>
+
+      <div className="solitaire-history">
+        <button
+          type="button"
+          className="secondary solitaire-history-btn"
+          onClick={undo}
+          disabled={!canUndo}
+          aria-label="Undo"
+        >
+          Undo
+        </button>
+        <button
+          type="button"
+          className="secondary solitaire-history-btn"
+          onClick={redo}
+          disabled={!canRedo}
+          aria-label="Redo"
+        >
+          Redo
+        </button>
       </div>
 
       <div className="solitaire-top">
@@ -732,15 +866,15 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
         })}
       </div>
 
-      <button
+      {/* <button
         type="button"
         className={`solitaire-clear${selected ? ' visible' : ''}`}
         onClick={clearSelection}
         aria-label="Clear selection"
         tabIndex={selected ? 0 : -1}
       >
-        Clear selection · Esc
-      </button>
+        Clear (esc)
+      </button> */}
     </div>
   );
 }

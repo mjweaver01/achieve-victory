@@ -1,9 +1,7 @@
 import { useMemo } from 'react';
-import QRCode from 'react-qr-code';
+import { QRCode } from 'react-qr-code';
 import { useSearchParams } from 'react-router';
-
-const STORE_URL =
-  import.meta.env.BUN_PUBLIC_STORE_URL ?? 'https://shop.madeon.com';
+import { STORE_URL } from '../config';
 
 function discountUrl(storeUrl: string, code: string): string {
   const base = storeUrl.replace(/\/$/, '');
@@ -38,8 +36,8 @@ export function PrintCodePage() {
           src="/images/logo.gif"
           alt=""
           className="gift-card-logo"
-          width={160}
-          height={160}
+          width={250}
+          height={250}
         />
         <p className="gift-card-label">Madeon discount</p>
         <p className="gift-card-code">{code}</p>

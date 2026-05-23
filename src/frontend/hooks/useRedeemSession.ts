@@ -97,7 +97,7 @@ export function useRedeemSession() {
         setStatus('done');
         setCode(data.code ?? '');
         setOfferText(data.offerText ?? '');
-        setMessage('You did it!');
+        setMessage('You did it! Your code:');
       } catch {
         setStatus('error');
         setMessage('Network error — try again.');
@@ -152,7 +152,7 @@ export function useRedeemSession() {
         setStatus('done');
         setCode(data.code ?? '');
         setOfferText(data.offerText ?? '');
-        setMessage('You did it!');
+        setMessage('You did it! Your code:');
       } catch {
         setStatus('error');
         setMessage('Network error — try again.');
