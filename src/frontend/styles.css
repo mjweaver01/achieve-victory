@@ -517,6 +517,7 @@ th {
 }
 
 .solitaire-wrap {
+  position: relative;
   --card-radius: 0.45rem;
   --card-bg: #f5f1e8;
   --card-bg-hover: #ffffff;
@@ -527,6 +528,42 @@ th {
   --card-overlap-up: 100%;
   display: grid;
   gap: 0.75rem;
+}
+
+.solitaire-clear {
+  position: absolute;
+  top: 0.25rem;
+  right: 0;
+  margin: 0;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--accent);
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--text);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease,
+    background 0.15s ease;
+  z-index: 5;
+}
+
+.solitaire-clear.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.solitaire-clear:hover {
+  background: var(--accent);
 }
 
 .solitaire-status {
@@ -559,7 +596,7 @@ th {
 
 .solitaire-top {
   display: grid;
-  grid-template-columns: 1fr 1fr 2fr;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) 1.5fr 1fr;
   gap: 0.5rem;
   align-items: start;
   padding: 0.6rem;
@@ -569,9 +606,7 @@ th {
 }
 
 .solitaire-foundations {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.4rem;
+  display: contents;
 }
 
 .solitaire-tableau {
@@ -619,6 +654,11 @@ th {
 
 .solitaire-card:hover:not(.empty):not(.down) {
   background: var(--card-bg-hover);
+}
+
+.solitaire-column > .solitaire-card.tableau:last-child:hover:not(.empty):not(.down),
+.solitaire-card.solitaire-waste:hover:not(.empty),
+.solitaire-card.foundation:hover:not(.empty) {
   transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.55);
   z-index: 2;
@@ -631,6 +671,76 @@ th {
     0 4px 10px rgba(0, 0, 0, 0.55);
   transform: translateY(-3px);
   z-index: 3;
+}
+
+.solitaire-card[draggable='true'] {
+  cursor: grab;
+}
+
+.solitaire-card[draggable='true']:active {
+  cursor: grabbing;
+}
+
+.solitaire-card.drop-target,
+.solitaire-column.drop-target > .solitaire-card:last-child {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent),
+    0 4px 10px rgba(0, 0, 0, 0.55);
+}
+
+.solitaire-column.drop-target {
+  position: relative;
+}
+
+.solitaire-drag-preview {
+  position: fixed;
+  top: -2000px;
+  left: -2000px;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.solitaire-drag-preview .solitaire-card {
+  position: relative;
+  aspect-ratio: 5 / 7;
+  border: 1px solid #1a1a1a;
+  border-radius: 0.45rem;
+  background: #ffffff;
+  padding: 0.25rem 0.3rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.55);
+  font-family: var(--font-heading);
+  font-weight: 700;
+}
+
+.solitaire-drag-preview .solitaire-card.stacked {
+  margin-top: -70%;
+}
+
+.solitaire-drag-preview .solitaire-card-face {
+  position: absolute;
+  inset: 0.18rem 0.28rem;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.solitaire-drag-preview .solitaire-card.red {
+  color: var(--card-red);
+}
+
+.solitaire-drag-preview .solitaire-card.black {
+  color: var(--card-black);
+}
+
+.solitaire-column.drop-target::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 0.6rem;
+  border: 1px dashed color-mix(in srgb, var(--accent) 60%, transparent);
+  pointer-events: none;
 }
 
 .solitaire-card.empty {
@@ -667,6 +777,54 @@ th {
 
 .solitaire-card.down .solitaire-back {
   display: none;
+}
+
+.solitaire-waste-slot {
+  --waste-card-w: 66.7%;
+  position: relative;
+  display: grid;
+  width: 100%;
+}
+
+.solitaire-waste-slot::before {
+  content: '';
+  width: var(--waste-card-w);
+  aspect-ratio: 5 / 7;
+  justify-self: end;
+}
+
+.solitaire-waste-slot > .solitaire-card {
+  position: absolute;
+  top: 0;
+  width: var(--waste-card-w);
+  aspect-ratio: 5 / 7;
+  margin: 0;
+}
+
+.solitaire-waste-slot.empty > .solitaire-card.empty {
+  right: 0;
+}
+
+.solitaire-waste-slot > .waste-bg {
+  pointer-events: none;
+  cursor: default;
+}
+
+.solitaire-waste-slot > .solitaire-waste {
+  right: 0;
+  z-index: 3;
+}
+
+.solitaire-waste-slot > .waste-bg[data-offset='1'] {
+  right: 16.7%;
+  z-index: 2;
+  filter: brightness(0.95);
+}
+
+.solitaire-waste-slot > .waste-bg[data-offset='2'] {
+  right: 33.4%;
+  z-index: 1;
+  filter: brightness(0.86);
 }
 
 .solitaire-stock {
@@ -777,10 +935,17 @@ th {
     --card-overlap-up: 74%;
   }
   .solitaire-top {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
-  .solitaire-foundations {
-    grid-column: 1 / -1;
+  .solitaire-waste-slot {
+    grid-column: span 3;
+    --waste-card-w: 33.4%;
+  }
+  .solitaire-waste-slot > .waste-bg[data-offset='1'] {
+    right: 16.7%;
+  }
+  .solitaire-waste-slot > .waste-bg[data-offset='2'] {
+    right: 33.4%;
   }
   .solitaire-card-pip {
     font-size: 1.2rem;

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type DragEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useElapsedTimer } from '../hooks/useElapsedTimer';
 import type { SolitaireProgress } from '../utils/gameProgress';
 import { formatDuration } from '../utils/time';
@@ -241,33 +241,33 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
 
   const clearSelection = useCallback(() => setSelected(null), []);
 
-  const tryMoveSelectionToFoundation = useCallback(
-    (targetSuit: Suit) => {
-      if (!selected || outcome !== 'playing') return;
-      const cards = selectedCards(selected, tableau, waste, foundations);
-      if (cards.length !== 1) return;
+  const moveToFoundation = useCallback(
+    (source: SelectedSource, targetSuit: Suit): boolean => {
+      if (outcome !== 'playing') return false;
+      const cards = selectedCards(source, tableau, waste, foundations);
+      if (cards.length !== 1) return false;
       const card = cards[0]!;
-      if (suitOf(card) !== targetSuit) return;
-      if (!foundationCanTake(foundations, card)) return;
+      if (suitOf(card) !== targetSuit) return false;
+      if (!foundationCanTake(foundations, card)) return false;
 
       markMove();
 
-      if (selected.type === 'waste') {
+      if (source.type === 'waste') {
         setWaste(prev => prev.slice(0, -1));
-      } else if (selected.type === 'foundation') {
-        if (selected.suit === targetSuit) return;
+      } else if (source.type === 'foundation') {
+        if (source.suit === targetSuit) return false;
         setFoundations(prev => ({
           ...prev,
-          [selected.suit]: prev[selected.suit].slice(0, -1),
+          [source.suit]: prev[source.suit].slice(0, -1),
         }));
       } else {
         setTableau(prev => {
           const next = prev.map(p => ({ down: [...p.down], up: [...p.up] }));
-          next[selected.pileIndex]!.up = next[selected.pileIndex]!.up.slice(
+          next[source.pileIndex]!.up = next[source.pileIndex]!.up.slice(
             0,
-            selected.startIndex
+            source.startIndex
           );
-          next[selected.pileIndex] = maybeFlipTableauTop(next[selected.pileIndex]!);
+          next[source.pileIndex] = maybeFlipTableauTop(next[source.pileIndex]!);
           return next;
         });
       }
@@ -277,36 +277,38 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
         [targetSuit]: [...prev[targetSuit], card],
       }));
       clearSelection();
+      return true;
     },
-    [selected, outcome, tableau, waste, foundations, markMove, clearSelection]
+    [outcome, tableau, waste, foundations, markMove, clearSelection]
   );
 
-  const tryMoveSelectionToTableau = useCallback(
-    (targetIndex: number) => {
-      if (!selected || outcome !== 'playing') return;
-      const moving = selectedCards(selected, tableau, waste, foundations);
-      if (moving.length === 0) return;
+  const moveToTableau = useCallback(
+    (source: SelectedSource, targetIndex: number): boolean => {
+      if (outcome !== 'playing') return false;
+      const moving = selectedCards(source, tableau, waste, foundations);
+      if (moving.length === 0) return false;
+      if (source.type === 'tableau' && source.pileIndex === targetIndex) return false;
       const first = moving[0]!;
       const target = tableau[targetIndex];
-      if (!target || !tableauCanTake(target, first)) return;
+      if (!target || !tableauCanTake(target, first)) return false;
 
       markMove();
 
-      if (selected.type === 'waste') {
+      if (source.type === 'waste') {
         setWaste(prev => prev.slice(0, -1));
-      } else if (selected.type === 'foundation') {
+      } else if (source.type === 'foundation') {
         setFoundations(prev => ({
           ...prev,
-          [selected.suit]: prev[selected.suit].slice(0, -1),
+          [source.suit]: prev[source.suit].slice(0, -1),
         }));
       } else {
         setTableau(prev => {
           const next = prev.map(p => ({ down: [...p.down], up: [...p.up] }));
-          next[selected.pileIndex]!.up = next[selected.pileIndex]!.up.slice(
+          next[source.pileIndex]!.up = next[source.pileIndex]!.up.slice(
             0,
-            selected.startIndex
+            source.startIndex
           );
-          next[selected.pileIndex] = maybeFlipTableauTop(next[selected.pileIndex]!);
+          next[source.pileIndex] = maybeFlipTableauTop(next[source.pileIndex]!);
           return next;
         });
       }
@@ -318,9 +320,136 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
       });
 
       clearSelection();
+      return true;
     },
-    [selected, outcome, tableau, waste, foundations, markMove, clearSelection]
+    [outcome, tableau, waste, foundations, markMove, clearSelection]
   );
+
+  const tryMoveSelectionToFoundation = useCallback(
+    (targetSuit: Suit) => {
+      if (!selected) return;
+      moveToFoundation(selected, targetSuit);
+    },
+    [selected, moveToFoundation]
+  );
+
+  const tryMoveSelectionToTableau = useCallback(
+    (targetIndex: number) => {
+      if (!selected) return;
+      moveToTableau(selected, targetIndex);
+    },
+    [selected, moveToTableau]
+  );
+
+  const dragSourceRef = useRef<SelectedSource | null>(null);
+  const [dragOverTarget, setDragOverTarget] = useState<
+    { kind: 'foundation'; suit: Suit } | { kind: 'tableau'; pileIndex: number } | null
+  >(null);
+
+  const buildStackDragImage = useCallback((cards: Card[], width: number): HTMLElement => {
+    const wrap = document.createElement('div');
+    wrap.className = 'solitaire-drag-preview';
+    wrap.style.width = `${width}px`;
+    cards.forEach((card, i) => {
+      const c = document.createElement('div');
+      c.className = `solitaire-card tableau ${cardColor(card)}`;
+      if (i > 0) c.classList.add('stacked');
+      const rank = rankLabel(card);
+      const suit = suitGlyph(suitOf(card));
+      c.innerHTML = `
+        <span class="solitaire-card-face">
+          <span class="solitaire-corner top-left">
+            <span class="solitaire-corner-rank">${rank}</span>
+            <span class="solitaire-corner-suit">${suit}</span>
+          </span>
+          <span class="solitaire-card-pip">${suit}</span>
+          <span class="solitaire-corner bottom-right">
+            <span class="solitaire-corner-rank">${rank}</span>
+            <span class="solitaire-corner-suit">${suit}</span>
+          </span>
+        </span>`;
+      wrap.appendChild(c);
+    });
+    document.body.appendChild(wrap);
+    return wrap;
+  }, []);
+
+  const beginDrag = useCallback(
+    (event: DragEvent, source: SelectedSource) => {
+      if (outcome !== 'playing') {
+        event.preventDefault();
+        return;
+      }
+      dragSourceRef.current = source;
+      setSelected(source);
+      try {
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', 'card');
+
+        if (source.type === 'tableau') {
+          const cards = tableau[source.pileIndex]?.up.slice(source.startIndex) ?? [];
+          if (cards.length > 1) {
+            const target = event.currentTarget as HTMLElement;
+            const rect = target.getBoundingClientRect();
+            const offsetX = event.clientX - rect.left;
+            const offsetY = event.clientY - rect.top;
+            const preview = buildStackDragImage(cards, rect.width);
+            event.dataTransfer.setDragImage(preview, offsetX, offsetY);
+            setTimeout(() => preview.remove(), 0);
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+    },
+    [outcome, tableau, buildStackDragImage]
+  );
+
+  const endDrag = useCallback(() => {
+    dragSourceRef.current = null;
+    setDragOverTarget(null);
+  }, []);
+
+  const allowDrop = useCallback((event: DragEvent) => {
+    if (!dragSourceRef.current) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDropFoundation = useCallback(
+    (event: DragEvent, suit: Suit) => {
+      event.preventDefault();
+      const source = dragSourceRef.current;
+      dragSourceRef.current = null;
+      setDragOverTarget(null);
+      if (!source) return;
+      moveToFoundation(source, suit);
+    },
+    [moveToFoundation]
+  );
+
+  const onDropTableau = useCallback(
+    (event: DragEvent, pileIndex: number) => {
+      event.preventDefault();
+      const source = dragSourceRef.current;
+      dragSourceRef.current = null;
+      setDragOverTarget(null);
+      if (!source) return;
+      moveToTableau(source, pileIndex);
+    },
+    [moveToTableau]
+  );
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && selected) {
+        event.preventDefault();
+        clearSelection();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [selected, clearSelection]);
 
   const onDraw = useCallback(() => {
     if (outcome !== 'playing') return;
@@ -350,51 +479,31 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
       </div>
 
       <div className="solitaire-top">
-        <button
-          type="button"
-          className={`solitaire-card solitaire-stock${stock.length === 0 ? ' empty' : ''}${stock.length > 0 ? ' down' : ''}`}
-          onClick={onDraw}
-          aria-label={stock.length > 0 ? 'Draw card' : 'Reset stock'}
-        >
-          {stock.length === 0 ? (
-            <span>
-              <span className="solitaire-stock-pip">↻</span>
-              <span className="solitaire-stock-label">Reset</span>
-            </span>
-          ) : null}
-        </button>
-
-        <button
-          type="button"
-          className={`solitaire-card solitaire-waste${selected?.type === 'waste' ? ' selected' : ''}${waste.length === 0 ? ' empty' : ''}${waste.length > 0 ? ` ${cardColor(waste.at(-1)!)}` : ''}`}
-          onClick={() => {
-            if (waste.length === 0) return;
-            setSelected(prev => (prev?.type === 'waste' ? null : { type: 'waste' }));
-          }}
-          onDoubleClick={() => {
-            const top = waste.at(-1);
-            if (!top) return;
-            void tryMoveSelectionToFoundation(suitOf(top));
-          }}
-        >
-          {waste.length > 0 ? (
-            <CardFace card={waste.at(-1)!} />
-          ) : (
-            <span className="solitaire-empty-label">Waste</span>
-          )}
-        </button>
-
         <div className="solitaire-foundations">
           {SUITS.map(suit => {
             const top = foundations[suit].at(-1);
             const isSelected =
               selected?.type === 'foundation' && selected.suit === suit;
+            const isDropTarget =
+              dragOverTarget?.kind === 'foundation' && dragOverTarget.suit === suit;
             const colorClass = top ? cardColor(top) : suit === 'H' || suit === 'D' ? 'red' : 'black';
             return (
               <button
                 key={suit}
                 type="button"
-                className={`solitaire-card foundation${isSelected ? ' selected' : ''}${top ? '' : ' empty'} ${colorClass}`}
+                className={`solitaire-card foundation${isSelected ? ' selected' : ''}${isDropTarget ? ' drop-target' : ''}${top ? '' : ' empty'} ${colorClass}`}
+                draggable={Boolean(top)}
+                onDragStart={event => {
+                  if (!top) return;
+                  beginDrag(event, { type: 'foundation', suit });
+                }}
+                onDragEnd={endDrag}
+                onDragOver={event => {
+                  allowDrop(event);
+                  setDragOverTarget({ kind: 'foundation', suit });
+                }}
+                onDragLeave={() => setDragOverTarget(null)}
+                onDrop={event => onDropFoundation(event, suit)}
                 onClick={() => {
                   if (selected) {
                     void tryMoveSelectionToFoundation(suit);
@@ -416,65 +525,172 @@ export function SolitaireMatch({ saved, onWin, onProgressChange }: Props) {
             );
           })}
         </div>
-      </div>
 
-      <div className="solitaire-tableau">
-        {tableau.map((pile, pileIndex) => (
-          <div key={pileIndex} className="solitaire-column">
-            {pile.down.map((_, idx) => (
-              <div key={`down-${pileIndex}-${idx}`} className="solitaire-card down" />
-            ))}
-            {pile.up.map((card, upIndex) => {
-              const isSelected =
-                selected?.type === 'tableau' &&
-                selected.pileIndex === pileIndex &&
-                upIndex >= selected.startIndex;
+        <div
+          className={`solitaire-waste-slot${waste.length === 0 ? ' empty' : ''}`}
+          aria-label="Waste pile"
+        >
+          {waste.length === 0 ? (
+            <div className="solitaire-card empty">
+              <span className="solitaire-empty-label">Waste</span>
+            </div>
+          ) : (
+            waste.slice(-3).map((card, i, arr) => {
+              const isTop = i === arr.length - 1;
+              const offsetIndex = arr.length - 1 - i;
+              if (!isTop) {
+                return (
+                  <div
+                    key={`waste-bg-${i}-${card}`}
+                    className={`solitaire-card waste-bg ${cardColor(card)}`}
+                    data-offset={offsetIndex}
+                    aria-hidden="true"
+                  >
+                    <CardFace card={card} />
+                  </div>
+                );
+              }
               return (
                 <button
-                  key={`up-${pileIndex}-${card}-${upIndex}`}
+                  key={`waste-top-${card}`}
                   type="button"
-                  className={`solitaire-card tableau ${cardColor(card)}${isSelected ? ' selected' : ''}`}
+                  className={`solitaire-card solitaire-waste ${cardColor(card)}${selected?.type === 'waste' ? ' selected' : ''}`}
+                  draggable
+                  onDragStart={event => beginDrag(event, { type: 'waste' })}
+                  onDragEnd={endDrag}
                   onClick={() => {
-                    if (selected) {
-                      void tryMoveSelectionToTableau(pileIndex);
+                    if (selected?.type === 'waste') {
+                      if (moveToFoundation({ type: 'waste' }, suitOf(card))) return;
+                      clearSelection();
                       return;
                     }
-                    setSelected({
-                      type: 'tableau',
-                      pileIndex,
-                      startIndex: upIndex,
-                    });
+                    setSelected({ type: 'waste' });
                   }}
                   onDoubleClick={() => {
-                    if (upIndex !== pile.up.length - 1) return;
-                    void tryMoveSelectionToFoundation(suitOf(card));
+                    void moveToFoundation({ type: 'waste' }, suitOf(card));
                   }}
                 >
                   <CardFace card={card} />
                 </button>
               );
-            })}
-            {pile.down.length === 0 && pile.up.length === 0 ? (
-              <button
-                type="button"
-                className="solitaire-card tableau empty"
-                onClick={() => {
-                  if (!selected) return;
-                  void tryMoveSelectionToTableau(pileIndex);
-                }}
-              >
-                <span className="solitaire-empty-label">K</span>
-              </button>
-            ) : null}
-          </div>
-        ))}
+            })
+          )}
+        </div>
+
+        <button
+          type="button"
+          className={`solitaire-card solitaire-stock${stock.length === 0 ? ' empty' : ''}${stock.length > 0 ? ' down' : ''}`}
+          onClick={onDraw}
+          aria-label={stock.length > 0 ? 'Draw card' : 'Reset stock'}
+        />
+
       </div>
 
-      {selected ? (
-        <button type="button" className="secondary" onClick={clearSelection}>
-          Clear selection
-        </button>
-      ) : null}
+      <div className="solitaire-tableau">
+        {tableau.map((pile, pileIndex) => {
+          const isDropTarget =
+            dragOverTarget?.kind === 'tableau' && dragOverTarget.pileIndex === pileIndex;
+          return (
+            <div
+              key={pileIndex}
+              className={`solitaire-column${isDropTarget ? ' drop-target' : ''}`}
+              onDragOver={event => {
+                allowDrop(event);
+                setDragOverTarget({ kind: 'tableau', pileIndex });
+              }}
+              onDragLeave={event => {
+                if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+                setDragOverTarget(null);
+              }}
+              onDrop={event => onDropTableau(event, pileIndex)}
+            >
+              {pile.down.map((_, idx) => (
+                <div key={`down-${pileIndex}-${idx}`} className="solitaire-card down" />
+              ))}
+              {pile.up.map((card, upIndex) => {
+                const isSelected =
+                  selected?.type === 'tableau' &&
+                  selected.pileIndex === pileIndex &&
+                  upIndex >= selected.startIndex;
+                return (
+                  <button
+                    key={`up-${pileIndex}-${card}-${upIndex}`}
+                    type="button"
+                    className={`solitaire-card tableau ${cardColor(card)}${isSelected ? ' selected' : ''}`}
+                    draggable
+                    onDragStart={event => {
+                      beginDrag(event, {
+                        type: 'tableau',
+                        pileIndex,
+                        startIndex: upIndex,
+                      });
+                    }}
+                    onDragEnd={endDrag}
+                    onClick={() => {
+                      const isTopOfPile = upIndex === pile.up.length - 1;
+                      const isSameSelection =
+                        selected?.type === 'tableau' &&
+                        selected.pileIndex === pileIndex &&
+                        selected.startIndex === upIndex;
+                      if (isSameSelection && isTopOfPile) {
+                        if (moveToFoundation(selected, suitOf(card))) return;
+                        clearSelection();
+                        return;
+                      }
+                      if (selected) {
+                        if (moveToTableau(selected, pileIndex)) return;
+                        if (
+                          isTopOfPile &&
+                          selected.type === 'tableau' &&
+                          selected.pileIndex === pileIndex
+                        ) {
+                          if (moveToFoundation(selected, suitOf(card))) return;
+                        }
+                      }
+                      setSelected({
+                        type: 'tableau',
+                        pileIndex,
+                        startIndex: upIndex,
+                      });
+                    }}
+                    onDoubleClick={() => {
+                      if (upIndex !== pile.up.length - 1) return;
+                      void moveToFoundation(
+                        { type: 'tableau', pileIndex, startIndex: upIndex },
+                        suitOf(card)
+                      );
+                    }}
+                  >
+                    <CardFace card={card} />
+                  </button>
+                );
+              })}
+              {pile.down.length === 0 && pile.up.length === 0 ? (
+                <button
+                  type="button"
+                  className="solitaire-card tableau empty"
+                  onClick={() => {
+                    if (!selected) return;
+                    void tryMoveSelectionToTableau(pileIndex);
+                  }}
+                >
+                  <span className="solitaire-empty-label">K</span>
+                </button>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+
+      <button
+        type="button"
+        className={`solitaire-clear${selected ? ' visible' : ''}`}
+        onClick={clearSelection}
+        aria-label="Clear selection"
+        tabIndex={selected ? 0 : -1}
+      >
+        Clear selection · Esc
+      </button>
     </div>
   );
 }
