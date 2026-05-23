@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { GameToolbar } from '../components/GameToolbar';
 import { Layout } from '../components/Layout';
 import { PuzzleComplete } from '../components/PuzzleComplete';
 import { SlidingPuzzle } from '../components/SlidingPuzzle';
-import { DevSkipButton } from '../components/DevSkipButton';
 import { PrintDiscountCodeButton } from '../components/PrintDiscountCodeButton';
 import { StartOverButton } from '../components/StartOverButton';
 import { useRedeemSession } from '../hooks/useRedeemSession';
@@ -70,6 +70,18 @@ export function PuzzlePage() {
       <div className="card">
         {status === 'playing' ? (
           <>
+            <GameToolbar
+              onStartOver={handleStartOver}
+              onDevSkip={() => {
+                const ms =
+                  savedPuzzle?.elapsedMs ??
+                  (savedPuzzle?.startedAt
+                    ? Date.now() - savedPuzzle.startedAt
+                    : 1000);
+                void devComplete(ms);
+              }}
+              devSkipBusy={devSkipBusy}
+            />
             <SlidingPuzzle
               key={gameKey}
               saved={savedPuzzle}
@@ -79,18 +91,6 @@ export function PuzzlePage() {
               onComplete={ms => void redeem(ms)}
               onProgressChange={handleProgress}
             />
-            <DevSkipButton
-              disabled={devSkipBusy}
-              onClick={() => {
-                const ms =
-                  savedPuzzle?.elapsedMs ??
-                  (savedPuzzle?.startedAt
-                    ? Date.now() - savedPuzzle.startedAt
-                    : 1000);
-                void devComplete(ms);
-              }}
-            />
-            <StartOverButton onClick={handleStartOver} />
           </>
         ) : (
           <PuzzleComplete

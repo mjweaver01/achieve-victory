@@ -9,8 +9,7 @@ import {
 import { useElapsedTimer } from '../hooks/useElapsedTimer';
 import type { SolitaireProgress } from '../utils/gameProgress';
 import { formatDuration } from '../utils/time';
-import { DevSkipButton } from './DevSkipButton';
-import { StartOverButton } from './StartOverButton';
+import { GameToolbar, GameToolbarButton } from './GameToolbar';
 
 const SUITS = ['S', 'H', 'D', 'C'] as const;
 const RANKS = [
@@ -45,7 +44,7 @@ type Props = {
   saved?: SolitaireProgress;
   onWin: (elapsedMs: number, score?: number) => void;
   onProgressChange: (progress: SolitaireProgress) => void;
-  onStartOver?: () => void;
+  onStartOver: () => void;
   onDevSkip?: () => void;
   devSkipBusy?: boolean;
 };
@@ -637,32 +636,26 @@ export function SolitaireMatch({
         ) : null}
       </div>
 
-      <div className="solitaire-toolbar">
-        <button
-          type="button"
-          className="secondary solitaire-toolbar-btn"
+      <GameToolbar
+        onStartOver={onStartOver}
+        onDevSkip={onDevSkip}
+        devSkipBusy={devSkipBusy}
+      >
+        <GameToolbarButton
           onClick={undo}
           disabled={!canUndo}
           aria-label="Undo"
         >
           Undo
-        </button>
-        <button
-          type="button"
-          className="secondary solitaire-toolbar-btn"
+        </GameToolbarButton>
+        <GameToolbarButton
           onClick={redo}
           disabled={!canRedo}
           aria-label="Redo"
         >
           Redo
-        </button>
-        {onStartOver ? (
-          <StartOverButton onClick={onStartOver} />
-        ) : null}
-        {onDevSkip ? (
-          <DevSkipButton onClick={onDevSkip} disabled={devSkipBusy} />
-        ) : null}
-      </div>
+        </GameToolbarButton>
+      </GameToolbar>
 
       <div className="solitaire-top">
         <div className="solitaire-foundations">

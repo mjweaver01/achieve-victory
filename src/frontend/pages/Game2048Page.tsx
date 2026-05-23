@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { DevSkipButton } from '../components/DevSkipButton';
+import { GameToolbar } from '../components/GameToolbar';
 import { Game2048 } from '../components/Game2048';
 import { Layout } from '../components/Layout';
 import { PuzzleComplete } from '../components/PuzzleComplete';
@@ -70,23 +70,23 @@ export function Game2048Page() {
       <div className="card">
         {status === 'playing' ? (
           <>
-            <Game2048
-              key={gameKey}
-              saved={savedGame}
-              onWin={(ms, score) => void redeem(ms, score)}
-              onProgressChange={handleProgress}
-            />
-            <DevSkipButton
-              disabled={devSkipBusy}
-              onClick={() => {
+            <GameToolbar
+              onStartOver={handleStartOver}
+              onDevSkip={() => {
                 const ms =
                   savedGame?.startedAt != null
                     ? Math.max(1, Date.now() - savedGame.startedAt)
                     : 1000;
                 void devComplete(ms, savedGame?.score ?? 2048);
               }}
+              devSkipBusy={devSkipBusy}
             />
-            <StartOverButton onClick={handleStartOver} />
+            <Game2048
+              key={gameKey}
+              saved={savedGame}
+              onWin={(ms, score) => void redeem(ms, score)}
+              onProgressChange={handleProgress}
+            />
           </>
         ) : (
           <PuzzleComplete

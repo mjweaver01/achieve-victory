@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { ChessMatch } from '../components/ChessMatch';
-import { DevSkipButton } from '../components/DevSkipButton';
+import { GameToolbar } from '../components/GameToolbar';
 import { Layout } from '../components/Layout';
 import { PuzzleComplete } from '../components/PuzzleComplete';
 import { PrintDiscountCodeButton } from '../components/PrintDiscountCodeButton';
@@ -70,23 +70,23 @@ export function ChessPage() {
       <div className="card">
         {status === 'playing' ? (
           <>
-            <ChessMatch
-              key={gameKey}
-              saved={savedChess}
-              onWin={ms => void redeem(ms, 1)}
-              onProgressChange={handleProgress}
-            />
-            <DevSkipButton
-              disabled={devSkipBusy}
-              onClick={() => {
+            <GameToolbar
+              onStartOver={handleStartOver}
+              onDevSkip={() => {
                 const ms =
                   savedChess?.startedAt != null
                     ? Math.max(1, Date.now() - savedChess.startedAt)
                     : 1000;
                 void devComplete(ms, 1);
               }}
+              devSkipBusy={devSkipBusy}
             />
-            <StartOverButton onClick={handleStartOver} />
+            <ChessMatch
+              key={gameKey}
+              saved={savedChess}
+              onWin={ms => void redeem(ms, 1)}
+              onProgressChange={handleProgress}
+            />
           </>
         ) : (
           <PuzzleComplete
