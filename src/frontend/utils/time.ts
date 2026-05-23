@@ -1,3 +1,11 @@
+function formatSecondCount(seconds: number): string {
+  const rounded = Math.round(seconds * 10) / 10;
+  if (Number.isInteger(rounded)) {
+    return String(rounded);
+  }
+  return rounded.toFixed(1);
+}
+
 export function formatDuration(ms: number): string {
   const safeMs = Math.max(0, Number.isFinite(ms) ? ms : 0);
 
@@ -12,8 +20,8 @@ export function formatDuration(ms: number): string {
   if (safeMs >= 60 * 1000) {
     const minutes = Math.floor(safeMs / 60000);
     const seconds = (safeMs % 60000) / 1000;
-    return `${minutes}m ${seconds.toFixed(1).padStart(4, '0')}s`;
+    return `${minutes}m ${formatSecondCount(seconds)}s`;
   }
 
-  return `${(safeMs / 1000).toFixed(1)}s`;
+  return `${formatSecondCount(safeMs / 1000)}s`;
 }
