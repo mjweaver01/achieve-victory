@@ -40,10 +40,6 @@ export async function redeemSession(
   if (session.email !== email) {
     return error('Email does not match session', 403);
   }
-  if (session.redeemed_at != null) {
-    return error('Session already redeemed', 409);
-  }
-
   const game = normalizeGame(session.game ?? body.game);
   const requestedGame = body.game == null ? null : normalizeGame(body.game);
   if (requestedGame != null && requestedGame !== game) {
