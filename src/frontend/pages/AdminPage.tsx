@@ -77,16 +77,23 @@ export function AdminPage() {
     <Layout title="Analytics" subtitle="Internal dashboard. Key required.">
       {stats ? null : (
         <div className="card">
-          <input
-            type="password"
-            placeholder="Analytics key"
-            value={key}
-            onChange={e => setKey(e.target.value)}
-          />
-          <button className="primary" type="button" onClick={() => void load()}>
-            Load tools
-          </button>
-          {error ? <p className="error">{error}</p> : null}
+          <form
+            onSubmit={e => {
+              e.preventDefault();
+              void load();
+            }}
+          >
+            <input
+              type="password"
+              placeholder="Analytics key"
+              value={key}
+              onChange={e => setKey(e.target.value)}
+            />
+            <button className="primary" type="submit">
+              Load tools
+            </button>
+            {error ? <p className="error">{error}</p> : null}
+          </form>
         </div>
       )}
 
@@ -124,6 +131,13 @@ export function AdminPage() {
               <span className="stat-value">
                 {stats.blockedAttempts.toLocaleString()}
               </span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-label">Avg. completion</span>
+              <span className="stat-value">
+                {formatDuration(stats.avgCompletionTimeMs ?? 0)}
+              </span>
+              <span className="stat-hint">across redeemed sessions</span>
             </div>
           </div>
 

@@ -61,6 +61,19 @@ export async function getAdmin(req: Request): Promise<Response> {
     .orderBy('date', 'asc')
     .execute();
 
+  const avgCompletionTimeMs = Math.round(
+    Number(
+      (
+        await db
+          .selectFrom('sessions')
+          .select(sql<string>`avg(completion_time_ms)`.as('avg'))
+          .where('completion_time_ms', 'is not', null)
+          .where('redeemed_at', 'is not', null)
+          .executeTakeFirst()
+      )?.avg ?? 0
+    )
+  );
+
   const topSessions = await db
     .selectFrom('sessions')
     .select(['email', 'completion_time_ms', 'redeemed_at'])
@@ -87,6 +100,7 @@ export async function getAdmin(req: Request): Promise<Response> {
     })),
     dropOffCount,
     blockedAttempts,
+    avgCompletionTimeMs,
   };
 
   return json(response);

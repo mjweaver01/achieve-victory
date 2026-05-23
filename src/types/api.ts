@@ -43,4 +43,5 @@ export type AdminStatsResponse = {
   }[];
   dropOffCount: number;
   blockedAttempts: number;
+  avgCompletionTimeMs: number;
 };
