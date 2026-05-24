@@ -21,6 +21,11 @@ import {
 } from '../hooks/useUndoRedo';
 import type { ChessProgress } from '../../types/progress';
 import { formatDuration } from '../utils/time';
+import {
+  getBoardSquareStyles,
+  getChessGameStatus,
+} from '../utils/chessStatus';
+import { ChessGameStatusPanel } from './ChessGameStatus';
 
 type Outcome = ChessProgress['outcome'];
 
@@ -245,29 +250,27 @@ export function ChessMatch({
       }
       if (playerLost(game)) {
         const elapsed = start ? Math.max(1, Date.now() - start) : 0;
-        const text = 'Checkmate! The computer wins. Try again.';
         setFrozenElapsedMs(elapsed);
         setOutcome('lost');
-        setStatusText(text);
+        setStatusText('');
         persist({
           fen: nextFen,
           startedAt: start,
           outcome: 'lost',
-          statusText: text,
+          statusText: '',
         });
         return true;
       }
       if (game.isDraw()) {
         const elapsed = start ? Math.max(1, Date.now() - start) : 0;
-        const text = 'Draw. Start over and go for checkmate.';
         setFrozenElapsedMs(elapsed);
         setOutcome('draw');
-        setStatusText(text);
+        setStatusText('');
         persist({
           fen: nextFen,
           startedAt: start,
           outcome: 'draw',
-          statusText: text,
+          statusText: '',
         });
         return true;
       }
@@ -282,29 +285,27 @@ export function ChessMatch({
       }
       if (playerLost(game)) {
         const elapsed = start ? Math.max(1, Date.now() - start) : 0;
-        const text = 'Checkmate! The computer wins. Try again.';
         setFrozenElapsedMs(elapsed);
         setOutcome('lost');
-        setStatusText(text);
+        setStatusText('');
         persist({
           fen: afterBotFen,
           startedAt: start,
           outcome: 'lost',
-          statusText: text,
+          statusText: '',
         });
         return true;
       }
       if (game.isDraw()) {
         const elapsed = start ? Math.max(1, Date.now() - start) : 0;
-        const text = 'Draw. Start over and go for checkmate.';
         setFrozenElapsedMs(elapsed);
         setOutcome('draw');
-        setStatusText(text);
+        setStatusText('');
         persist({
           fen: afterBotFen,
           startedAt: start,
           outcome: 'draw',
-          statusText: text,
+          statusText: '',
         });
         return true;
       }
@@ -376,12 +377,17 @@ export function ChessMatch({
     [outcome]
   );
 
-  const squareStyles = useMemo(
-    () =>
+  const squareStyles = useMemo(() => {
+    const moveHints =
       outcome === 'playing' && moveFrom
         ? getMoveSquareStyles(gameRef.current, moveFrom)
-        : {},
-    [fen, moveFrom, outcome]
+        : {};
+    return getBoardSquareStyles(gameRef.current, moveHints);
+  }, [fen, moveFrom, outcome]);
+
+  const gameStatus = useMemo(
+    () => getChessGameStatus(gameRef.current),
+    [fen]
   );
 
   const boardOptions = useMemo(
@@ -412,7 +418,14 @@ export function ChessMatch({
   return (
     <div className="chess-wrap">
       <p className="timer">Time: {formatDuration(elapsedMs)}</p>
-      {statusText && <p className="timer">{statusText}</p>}
+      <ChessGameStatusPanel status={gameStatus} />
+      {outcome === 'lost' ? (
+        <p className="chess-status-note">Try again from the toolbar.</p>
+      ) : null}
+      {outcome === 'draw' ? (
+        <p className="chess-status-note">Start over and go for checkmate.</p>
+      ) : null}
+      {statusText ? <p className="chess-status-note">{statusText}</p> : null}
       <Chessboard options={boardOptions} />
     </div>
   );

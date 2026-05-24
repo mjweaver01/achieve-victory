@@ -167,6 +167,9 @@
   --chess-selected: color-mix(in srgb, var(--accent) 35%, transparent);
   --chess-move-dot: color-mix(in srgb, var(--color) 28%, transparent);
   --chess-capture-ring: color-mix(in srgb, var(--accent) 55%, transparent);
+  --chess-last-move-from: color-mix(in srgb, #e74 32%, transparent);
+  --chess-last-move-to: color-mix(in srgb, #e74 55%, transparent);
+  --chess-check-glow: color-mix(in srgb, #e74 55%, transparent);
   --chart-tick: var(--gray-muted);
   --chart-bar: var(--red-chart);
 }
