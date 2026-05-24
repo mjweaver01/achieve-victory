@@ -418,13 +418,13 @@ export function ChessMatch({
   return (
     <div className="chess-wrap">
       <p className="timer">Time: {formatDuration(elapsedMs)}</p>
-      <ChessGameStatusPanel status={gameStatus} />
       {outcome === 'lost' ? (
         <p className="chess-status-note">Try again from the toolbar.</p>
       ) : null}
       {outcome === 'draw' ? (
         <p className="chess-status-note">Start over and go for checkmate.</p>
       ) : null}
+      <ChessGameStatusPanel status={gameStatus} />
       {statusText ? <p className="chess-status-note">{statusText}</p> : null}
       <Chessboard options={boardOptions} />
     </div>
